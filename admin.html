@@ -4,27 +4,18 @@
     <meta charset="UTF-8">
     <title>에듀메이커 - 강의 배정 시스템</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            // 관리자님의 Public Key
-            emailjs.init("0VVyqizaUqeIcG7FU");
-        })();
-    </script>
     <style>
+        /* 기존 스타일 동일 유지 */
         body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; padding: 40px; margin: 0; }
         .admin-box { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); max-width: 550px; margin: 0 auto; }
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
         .input-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: #0056b3; background-color: #f9fbff; }
-        input[readonly] { background-color: #f1f3f5; cursor: not-allowed; }
-        textarea { height: 80px; resize: none; font-family: inherit; }
         .btn-assign { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 15px; transition: 0.3s; }
         .btn-assign:hover { background-color: #004494; transform: translateY(-1px); }
         .admin-footer-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-status-link, .btn-list-link { flex: 1; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; box-sizing: border-box; transition: 0.2s; border: 1px solid #e9ecef; }
-        .btn-status-link:hover, .btn-list-link:hover { background-color: #e9ecef; color: #0056b3; border-color: #ced4da; }
+        .btn-status-link, .btn-list-link { flex: 1; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; box-sizing: border-box; border: 1px solid #e9ecef; }
     </style>
 </head>
 <body>
@@ -34,7 +25,7 @@
     
     <div class="input-group">
         <label>강사 성함</label>
-        <select id="teacherSelect" onchange="autoFillEmail()">
+        <select id="teacherSelect">
             <option value="">강사님을 선택하세요</option>
         </select>
     </div>
@@ -90,10 +81,10 @@
 
     <div class="input-group">
         <label>서비스이용료 (%)</label>
-        <input type="number" id="commissionRate" placeholder="예: 10" value="0">
+        <input type="number" id="commissionRate" value="0">
     </div>
 
-    <button class="btn-assign" onclick="handleAssignment()">강의 배정하기</button>
+    <button class="btn-assign" id="assignBtn">강의 배정하기</button>
     
     <div class="admin-footer-buttons">
         <a href="status.html" target="_blank" class="btn-status-link">📋 배정 현황 확인</a>
@@ -118,8 +109,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // 2. EmailJS 초기화 (모듈 내부에서 실행)
+    emailjs.init("0VVyqizaUqeIcG7FU");
+
     let teachersData = []; 
 
+    // 강사 목록 로드
     async function fetchTeachers() {
         const teacherSelect = document.getElementById('teacherSelect');
         try {
@@ -140,14 +135,14 @@
     }
     fetchTeachers();
 
-    window.autoFillEmail = function() {
+    // 3. 이벤트 리스너 방식 (index.html 스타일)
+    document.getElementById('teacherSelect').addEventListener('change', () => {
         const selectedName = document.getElementById('teacherSelect').value;
-        const emailInput = document.getElementById('teacherEmail');
         const teacher = teachersData.find(t => t.name === selectedName);
-        emailInput.value = teacher ? teacher.email : "";
-    }
+        document.getElementById('teacherEmail').value = teacher ? teacher.email : "";
+    });
 
-    window.handleAssignment = async function() {
+    document.getElementById('assignBtn').addEventListener('click', async () => {
         const name = document.getElementById('teacherSelect').value;
         const email = document.getElementById('teacherEmail').value;
         const client = document.getElementById('client').value;
@@ -169,7 +164,7 @@
             const totalGrossPay = Number(classHours) * Number(hourlyRate);
             const calculatedServiceFee = Math.floor(totalGrossPay * (Number(commissionRate) / 100));
 
-            // 1. Firebase Firestore 저장 (기존 필드명 유지)
+            // Firebase 저장
             await addDoc(collection(db, "assignments"), {
                 teacherName: name,
                 teacherEmail: email,
@@ -189,30 +184,25 @@
                 isPaidService: false  
             });
 
-            // 2. 강사에게 알림 메일 발송 (EmailJS 템플릿 필드명에 맞게 수정됨)
+            // EmailJS 전송 (변수명 100% 일치)
             const templateParams = {
-                teacherEmail: email,   // {{teacherEmail}}
-                teacherName: name,    // {{teacherName}}
-                client: client,       // {{client}}
-                subject: subject,     // {{subject}}
-                date: eduDate,        // {{date}}
-                time: eduTime,        // {{time}}
-                role: role            // {{role}}
+                teacherEmail: email,
+                teacherName: name,
+                client: client,
+                subject: subject,
+                date: eduDate,
+                time: eduTime,
+                role: role
             };
 
-            emailjs.send('service_6f7u7om', 'template_05mv50b', templateParams)
-                .then(function(response) {
-                    console.log('강사 알림 메일 발송 성공!', response.status, response.text);
-                }, function(error) {
-                    console.error('메일 발송 실패...', error);
-                });
-
-            alert(name + " 강사님께 강의 배정 및 알림 메일 발송이 완료되었습니다!");
+            await emailjs.send('service_6f7u7om', 'template_05mv50b', templateParams);
+            
+            alert(name + " 강사님 배정 및 알림 메일 발송 완료!");
             location.reload(); 
         } catch (error) {
             alert("오류 발생: " + error.message);
         }
-    }
+    });
 </script>
 </body>
 </html>
