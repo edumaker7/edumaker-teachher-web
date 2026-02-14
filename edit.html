@@ -8,7 +8,6 @@
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f5; padding: 20px; margin: 0; }
         
-        /* 🔥 [수정] max-width와 박스 사이징으로 반응형 대응 */
         .edit-box { 
             background: white; padding: 30px; border-radius: 12px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
@@ -21,10 +20,10 @@
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         .required { color: #d93025; margin-left: 3px; font-weight: bold; }
         
-        /* 🔥 [수정] 폰트 16px (아이폰 확대 방지) */
+        /* 기본 인풋 스타일 (16px로 아이폰 확대 방지) */
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
-        /* 반응형: 화면 작아지면 세로 배치 */
+        /* 레이아웃 그룹 */
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
         
@@ -38,15 +37,51 @@
         #roleSelect { flex: 1; min-width: 120px; }
         #roleInputDirect { flex: 1; display: none; min-width: 150px; }
         
-        .schedule-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
-        .schedule-row input[type="date"] { flex: 2; min-width: 130px; } 
-        .time-picker-group { display: flex; gap: 2px; align-items: center; flex: 4; justify-content: flex-end; flex-wrap: wrap; }
-        .time-picker-group select { padding: 8px 2px; text-align: center; font-size: 13px; height: 42px; width: auto; }
-        .hour-select, .min-select { width: 55px !important; }
-        .ampm-select { width: 65px !important; background-color: #fff; }
-        .tilde { font-weight: bold; color: #888; margin: 0 4px; }
+        /* 🔥 [수정] 일정 입력 Row 디자인 개선 */
+        .schedule-row { 
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; 
+            align-items: center; padding: 12px; 
+            background-color: #f1f3f5; border-radius: 8px; border: 1px solid #e9ecef;
+        }
+        .schedule-row input[type="date"] { 
+            flex: 1; min-width: 140px; background: #fff; border: 1px solid #ced4da;
+        } 
+
+        /* 시간 선택 그룹 */
+        .time-picker-group { 
+            display: flex; align-items: center; gap: 5px; flex: 2; 
+            justify-content: flex-end; flex-wrap: wrap; 
+        }
+
+        /* 개별 시간 세트 (오후 01:00) 박스 디자인 */
+        .time-set {
+            display: flex; align-items: center; gap: 2px;
+            background: #fff; border: 1px solid #ced4da; border-radius: 6px;
+            padding: 0 5px; height: 45px;
+        }
+
+        /* 시간 선택 셀렉트 박스 (너비 강제 100% 해제) */
+        .time-set select {
+            width: auto !important; 
+            border: none; background: transparent;
+            padding: 0 2px; font-size: 14px; text-align: center;
+            height: 100%;
+        }
+        .time-set select:focus { outline: none; }
+
+        .ampm-select { font-weight: bold; color: #0056b3; width: 55px !important; }
+        .hour-select, .min-select { width: 45px !important; }
         
-        .btn-remove-row { background-color: #ff6b6b; color: white; border: none; border-radius: 8px; width: 35px; height: 42px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .tilde { font-weight: bold; color: #888; margin: 0 2px; }
+        
+        /* 삭제 버튼 디자인 */
+        .btn-remove-row { 
+            background-color: #ff6b6b; color: white; border: none; 
+            border-radius: 6px; width: 40px; height: 45px; 
+            cursor: pointer; font-weight: bold; font-size: 20px; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
         .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
         
         /* 버튼 그룹 */
@@ -56,6 +91,14 @@
         
         .btn-update:hover { background-color: #004494; }
         .btn-close:hover { background-color: #5a6268; }
+
+        /* 🔥 모바일 최적화 (화면 좁을 때) */
+        @media (max-width: 600px) {
+            .schedule-row input[type="date"] { width: 100%; flex: 100%; margin-bottom: 5px; }
+            .time-picker-group { width: 100%; justify-content: space-between; flex: 100%; }
+            .time-set { flex: 1; justify-content: center; } /* 시간 박스 균등 분할 */
+            .btn-remove-row { width: 100%; margin-top: 5px; height: 35px; }
+        }
     </style>
 </head>
 <body>
@@ -140,6 +183,7 @@
         let options = ''; for(let i=0; i<60; i+=5) { let val = i.toString().padStart(2, '0'); options += `<option value="${val}" ${val === selected ? 'selected' : ''}>${val}</option>`; } return options;
     }
 
+    // 🔥 [수정] JS: HTML 구조를 time-set으로 감싸도록 변경
     window.addScheduleRow = function(dateValue = '', timeString = '') {
         const container = document.getElementById('scheduleContainer');
         const row = document.createElement('div');
@@ -153,7 +197,25 @@
                 t.eAmpm = end[0]; t.eH = end[1].split(':')[0]; t.eM = end[1].split(':')[1];
             } catch(e) {}
         }
-        row.innerHTML = `<input type="date" class="input-date" value="${dateValue}"><div class="time-picker-group"><select class="ampm-start ampm-select"><option value="오전" ${t.sAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.sAmpm==='오후'?'selected':''}>오후</option></select><select class="hour-start hour-select">${createHourOptions(t.sH)}</select><span>:</span><select class="min-start min-select">${createMinuteOptions(t.sM)}</select><span class="tilde">~</span><select class="ampm-end ampm-select"><option value="오전" ${t.eAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.eAmpm==='오후'?'selected':''}>오후</option></select><select class="hour-end hour-select">${createHourOptions(t.eH)}</select><span>:</span><select class="min-end min-select">${createMinuteOptions(t.eM)}</select></div><button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">-</button>`;
+        
+        row.innerHTML = `
+            <input type="date" class="input-date" value="${dateValue}">
+            <div class="time-picker-group">
+                <div class="time-set">
+                    <select class="ampm-start ampm-select"><option value="오전" ${t.sAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.sAmpm==='오후'?'selected':''}>오후</option></select>
+                    <select class="hour-start hour-select">${createHourOptions(t.sH)}</select>
+                    <span>:</span>
+                    <select class="min-start min-select">${createMinuteOptions(t.sM)}</select>
+                </div>
+                <span class="tilde">~</span>
+                <div class="time-set">
+                    <select class="ampm-end ampm-select"><option value="오전" ${t.eAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.eAmpm==='오후'?'selected':''}>오후</option></select>
+                    <select class="hour-end hour-select">${createHourOptions(t.eH)}</select>
+                    <span>:</span>
+                    <select class="min-end min-select">${createMinuteOptions(t.eM)}</select>
+                </div>
+            </div>
+            <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">-</button>`;
         container.appendChild(row);
     }
 
