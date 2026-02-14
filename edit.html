@@ -16,15 +16,21 @@
         .half-input { flex: 1; }
         .address-row { display: flex; gap: 10px; }
         .addr-search-group { flex: 7; display: flex; gap: 5px; }
-        .addr-search-group input { flex: 1; cursor: pointer; background-color: #fdfdfd; }
+        .addr-search-group input { flex: 1; background-color: #fff; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         #classRoom { flex: 3; }
+        .role-wrapper { display: flex; gap: 10px; }
+        #roleSelect { flex: 1; }
+        #roleInputDirect { flex: 1; display: none; }
         .schedule-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
         .schedule-row input[type="date"] { flex: 2; min-width: 130px; } 
         .time-picker-group { display: flex; gap: 2px; align-items: center; flex: 4; justify-content: flex-end; }
         .time-picker-group select { padding: 8px 2px; text-align: center; font-size: 13px; height: 42px; width: auto; }
         .hour-select, .min-select { width: 55px !important; }
-        .ampm-select { width: 65px !important; }
+        .ampm-select { width: 65px !important; background-color: #fff; }
+        .tilde { font-weight: bold; color: #888; margin: 0 4px; }
+        .btn-remove-row { background-color: #ff6b6b; color: white; border: none; border-radius: 8px; width: 35px; height: 42px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
         .btn-update { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 10px; }
     </style>
 </head>
@@ -43,28 +49,31 @@
     <div class="input-group">
         <label>강의 장소 <span class="required">*</span></label>
         <div class="address-row">
-            <div class="addr-search-group"><input type="text" id="address" placeholder="주소 검색" readonly onclick="openDaumPostcode()"><button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button></div>
+            <div class="addr-search-group"><input type="text" id="address" placeholder="주소 직접 입력 또는 검색"><button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button></div>
             <input type="text" id="classRoom" placeholder="상세장소">
         </div>
     </div>
     <div class="input-group">
         <label>역할 <span class="required">*</span></label>
-        <select id="roleSelect"><option value="주강사">주강사</option><option value="보조강사">보조강사</option><option value="안전요원">안전요원</option><option value="direct">직접 입력 (기타)</option></select>
-        <input type="text" id="roleInputDirect" placeholder="역할 직접 입력" style="margin-top:5px; display:none;">
+        <div class="role-wrapper">
+            <select id="roleSelect"><option value="">선택하세요</option><option value="주강사">주강사</option><option value="보조강사">보조강사</option><option value="안전요원">안전요원</option><option value="direct">직접 입력 (기타)</option></select>
+            <input type="text" id="roleInputDirect" placeholder="역할 직접 입력">
+        </div>
     </div>
     <div class="input-group">
         <label>교육 일정 <span class="required">*</span></label>
         <div id="scheduleContainer"></div>
-        <button type="button" onclick="addScheduleRow()" style="width:100%; padding:10px; background:#51cf66; color:white; border:none; border-radius:8px; cursor:pointer;">+ 일정 추가</button>
+        <button type="button" class="btn-add-row" id="addScheduleBtn">+ 일정 추가하기</button>
     </div>
     <div class="row-group">
-        <div class="half-input"><label>총 강의 시간</label><input type="number" id="classHours"></div>
-        <div class="half-input"><label>시간당 강사료</label><input type="text" id="hourlyRate"></div>
+        <div class="half-input"><label>총 강의 시간 <span class="required">*</span></label><input type="number" id="classHours"></div>
+        <div class="half-input"><label>시간당 강사료 <span class="required">*</span></label><input type="text" id="hourlyRate"></div>
     </div>
     <div class="row-group">
         <div class="half-input"><label>추가 비용</label><input type="text" id="additionalCost"></div>
-        <div class="half-input"><label>수수료율 (%)</label><input type="number" id="commissionRate"></div>
+        <div class="half-input"><label>서비스이용료 (%)</label><input type="number" id="commissionRate"></div>
     </div>
+    <div class="input-group"><label>비고</label><textarea id="note" style="height: 60px;"></textarea></div>
     <button class="btn-update" id="updateBtn">수정 내용 저장하기</button>
 </div>
 
@@ -81,22 +90,12 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw",
-        authDomain: "edumaker-teacher-d97ba.firebaseapp.com",
-        projectId: "edumaker-teacher-d97ba",
-        storageBucket: "edumaker-teacher-d97ba.firebasestorage.app",
-        messagingSenderId: "532708143359",
-        appId: "1:532708143359:web:89b9933da4c868127ddcca",
-        measurementId: "G-JJ1TF77VBJ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
+    const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     const urlParams = new URLSearchParams(window.location.search);
     const docId = urlParams.get('id');
 
-    let originalData = {}; // 🔥 원본 데이터를 저장할 변수
+    let originalData = {}; 
 
     function createHourOptions(selected) {
         let options = ''; for(let i=1; i<=12; i++) { let val = i.toString().padStart(2, '0'); options += `<option value="${val}" ${val === selected ? 'selected' : ''}>${val}</option>`; } return options;
@@ -118,23 +117,14 @@
                 t.eAmpm = end[0]; t.eH = end[1].split(':')[0]; t.eM = end[1].split(':')[1];
             } catch(e) {}
         }
-        row.innerHTML = `
-            <input type="date" class="input-date" value="${dateValue}">
-            <div class="time-picker-group">
-                <select class="ampm-start"><option ${t.sAmpm==='오전'?'selected':''}>오전</option><option ${t.sAmpm==='오후'?'selected':''}>오후</option></select>
-                <select class="hour-start hour-select">${createHourOptions(t.sH)}</select>:<select class="min-start min-select">${createMinuteOptions(t.sM)}</select>
-                <span>~</span>
-                <select class="ampm-end"><option ${t.eAmpm==='오전'?'selected':''}>오전</option><option ${t.eAmpm==='오후'?'selected':''}>오후</option></select>
-                <select class="hour-end hour-select">${createHourOptions(t.eH)}</select>:<select class="min-end min-select">${createMinuteOptions(t.eM)}</select>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()">-</button>`;
+        row.innerHTML = `<input type="date" class="input-date" value="${dateValue}"><div class="time-picker-group"><select class="ampm-start ampm-select"><option value="오전" ${t.sAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.sAmpm==='오후'?'selected':''}>오후</option></select><select class="hour-start hour-select">${createHourOptions(t.sH)}</select><span>:</span><select class="min-start min-select">${createMinuteOptions(t.sM)}</select><span class="tilde">~</span><select class="ampm-end ampm-select"><option value="오전" ${t.eAmpm==='오전'?'selected':''}>오전</option><option value="오후" ${t.eAmpm==='오후'?'selected':''}>오후</option></select><select class="hour-end hour-select">${createHourOptions(t.eH)}</select><span>:</span><select class="min-end min-select">${createMinuteOptions(t.eM)}</select></div><button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">-</button>`;
         container.appendChild(row);
     }
 
     if (docId) {
         getDoc(doc(db, "assignments", docId)).then((docSnap) => {
             if (docSnap.exists()) {
-                originalData = docSnap.data(); // 🔥 원본 복사
+                originalData = docSnap.data(); 
                 document.getElementById('teacherName').value = originalData.teacherName;
                 document.getElementById('teacherEmail').value = originalData.teacherEmail;
                 document.getElementById('client').value = originalData.client;
@@ -144,23 +134,45 @@
                 document.getElementById('classHours').value = originalData.classHours;
                 document.getElementById('hourlyRate').value = Number(originalData.hourlyRate).toLocaleString();
                 document.getElementById('additionalCost').value = Number(originalData.additionalCost || 0).toLocaleString();
-                document.getElementById('commissionRate').value = originalData.commissionRate;
+                document.getElementById('commissionRate').value = originalData.commissionRate || 0;
+                document.getElementById('note').value = originalData.note || '';
 
+                const roles = ["주강사", "보조강사", "안전요원"];
+                if (roles.includes(originalData.role)) document.getElementById('roleSelect').value = originalData.role;
+                else if(originalData.role) { document.getElementById('roleSelect').value = "direct"; document.getElementById('roleInputDirect').style.display='block'; document.getElementById('roleInputDirect').value=originalData.role; }
                 const dates = originalData.date ? originalData.date.split(', ') : [];
                 const times = originalData.time ? originalData.time.split(', ') : [];
-                dates.forEach((d, i) => addScheduleRow(d, times[i]));
+                if(dates.length > 0) dates.forEach((d, i) => addScheduleRow(d, times[i]));
+                else addScheduleRow();
             }
         });
     }
 
+    document.getElementById('roleSelect').addEventListener('change', function() {
+        const dInput = document.getElementById('roleInputDirect');
+        if(this.value === 'direct') { dInput.style.display = 'block'; dInput.focus(); }
+        else { dInput.style.display = 'none'; dInput.value = ''; }
+    });
+
+    function handleComma(e) { let v = e.target.value.replace(/[^0-9]/g, ''); e.target.value = v ? Number(v).toLocaleString() : ''; }
+    document.getElementById('hourlyRate').addEventListener('input', handleComma);
+    document.getElementById('additionalCost').addEventListener('input', handleComma);
+    document.getElementById('addScheduleBtn').onclick = () => addScheduleRow();
+
     document.getElementById('updateBtn').onclick = async () => {
-        // 새 데이터 수집
-        const newAddress = document.getElementById('address').value;
-        const newClassRoom = document.getElementById('classRoom').value;
-        const newClassHours = Number(document.getElementById('classHours').value);
-        const newHourlyRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
-        const newAdditionalCost = Number(document.getElementById('additionalCost').value.replace(/,/g, ''));
+        const newClient = document.getElementById('client').value.trim(); // 강의처
+        const newSub = document.getElementById('subject').value.trim();
+        const newAddr = document.getElementById('address').value.trim();
+        const newRoom = document.getElementById('classRoom').value.trim();
+        const newHours = Number(document.getElementById('classHours').value);
+        const newRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
+        const newAdd = Number(document.getElementById('additionalCost').value.replace(/,/g, ''));
+        const newComm = Number(document.getElementById('commissionRate').value);
+        const newNote = document.getElementById('note').value.trim(); // 비고
         
+        let newRole = document.getElementById('roleSelect').value;
+        if (newRole === 'direct') newRole = document.getElementById('roleInputDirect').value.trim();
+
         const rows = document.querySelectorAll('.schedule-row');
         let dList = []; let tList = [];
         rows.forEach(row => {
@@ -169,40 +181,35 @@
             const te = `${row.querySelector('.ampm-end').value} ${row.querySelector('.hour-end').value}:${row.querySelector('.min-end').value}`;
             if(d) { dList.push(d); tList.push(`${ts} ~ ${te}`); }
         });
-        const newDate = dList.join(', ');
-        const newTime = tList.join(', ');
+        const newDate = dList.join(', '); const newTime = tList.join(', ');
 
-        // 🔥 변경 여부 개별 체크
-        const changeLog = {
-            isUpdated: true,
-            status: "배정완료",
-            isPaidTeacher: false,
-            isPaidService: false,
-            // 개별 필드 비교
-            changed_address: (newAddress !== originalData.address),
-            changed_classRoom: (newClassRoom !== (originalData.classRoom || '')),
-            changed_schedule: (newDate !== originalData.date || newTime !== originalData.time),
-            changed_money: (newClassHours !== originalData.classHours || newHourlyRate !== originalData.hourlyRate || newAdditionalCost !== (originalData.additionalCost || 0))
-        };
+        // 🔥 모든 항목 개별 비교 (강의처, 비고 추가)
+        const changedCli = newClient !== (originalData.client || "").trim();
+        const changedSub = newSub !== (originalData.subject || "").trim();
+        const changedAddr = newAddr !== (originalData.address || "").trim();
+        const changedRoom = newRoom !== (originalData.classRoom || "").trim();
+        const changedRole = newRole !== (originalData.role || "").trim();
+        const changedSch = (newDate !== originalData.date) || (newTime !== originalData.time);
+        const changedH = newHours !== Number(originalData.classHours || 0);
+        const changedR = newRate !== Number(originalData.hourlyRate || 0);
+        const changedA = newAdd !== Number(originalData.additionalCost || 0);
+        const changedC = newComm !== Number(originalData.commissionRate || 0);
+        const changedN = newNote !== (originalData.note || "").trim();
 
         try {
             await updateDoc(doc(db, "assignments", docId), {
-                client: document.getElementById('client').value,
-                subject: document.getElementById('subject').value,
-                address: newAddress,
-                classRoom: newClassRoom,
-                date: newDate,
-                time: newTime,
-                classHours: newClassHours,
-                hourlyRate: newHourlyRate,
-                additionalCost: newAdditionalCost,
-                serviceFee: Math.floor((newClassHours * newHourlyRate) * (Number(document.getElementById('commissionRate').value) / 100)),
-                commissionRate: Number(document.getElementById('commissionRate').value),
-                ...changeLog // 체크한 변경사항 합치기
+                client: newClient, subject: newSub, address: newAddr, classRoom: newRoom, role: newRole,
+                date: newDate, time: newTime, classHours: newHours, hourlyRate: newRate, additionalCost: newAdd, commissionRate: newComm,
+                serviceFee: Math.floor((newHours * newRate) * (newComm / 100)), note: newNote,
+                status: "배정완료", isUpdated: true, isPaidTeacher: false, isPaidService: false,
+                // 🔥 변경 플래그 전송 (강의처, 비고 포함)
+                changed_client: changedCli, changed_subject: changedSub, changed_address: changedAddr, 
+                changed_classRoom: changedRoom, changed_role: changedRole, changed_schedule: changedSch, 
+                changed_hours: changedH, changed_rate: changedR, changed_addCost: changedA, 
+                changed_comm: changedC, changed_note: changedN
             });
-            alert("수정되었습니다.");
-            window.close();
-        } catch (e) { alert("오류: " + e.message); }
+            alert("수정되었습니다."); window.close(); 
+        } catch (e) { alert("수정 오류: " + e.message); }
     };
 </script>
 </body>

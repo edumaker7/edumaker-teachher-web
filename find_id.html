@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디 찾기 - EDUMAKER</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .popup-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .logo { font-size: 24px; font-weight: 900; color: #0056b3; margin-bottom: 20px; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 700; color: #495057; margin-bottom: 8px; }
+        input { width: 100%; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-find { width: 100%; padding: 14px; background-color: #0056b3; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.6; }
+        .result-success { background-color: #e7f1ff; color: #0056b3; border: 1px solid #cfe2ff; }
+        .result-fail { background-color: #fff2f2; color: #dc3545; border: 1px solid #ffcccc; }
+    </style>
+</head>
+<body>
+
+<div class="popup-box">
+    <div class="logo">아이디 찾기</div>
+    
+    <div class="input-group">
+        <label>성함</label>
+        <input type="text" id="name" placeholder="가입하신 성함을 입력하세요">
+    </div>
+
+    <div class="input-group">
+        <label>휴대폰 번호</label>
+        <input type="tel" id="phone" placeholder="숫자만 입력하세요" maxlength="13">
+    </div>
+
+    <button class="btn-find" id="findBtn">아이디 조회하기</button>
+
+    <div id="result"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw",
+        authDomain: "edumaker-teacher-d97ba.firebaseapp.com",
+        projectId: "edumaker-teacher-d97ba",
+        storageBucket: "edumaker-teacher-d97ba.firebasestorage.app",
+        messagingSenderId: "532708143359",
+        appId: "1:532708143359:web:89b9933da4c868127ddcca",
+        measurementId: "G-JJ1TF77VBJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 전화번호 자동 하이픈 기능
+    document.getElementById('phone').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '')
+            .replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+    });
+
+    document.getElementById('findBtn').addEventListener('click', async () => {
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const resultDiv = document.getElementById('result');
+
+        if (!name || !phone) {
+            alert("정보를 모두 입력해주세요.");
+            return;
+        }
+
+        try {
+            const q = query(collection(db, "users"), where("name", "==", name), where("phone", "==", phone));
+            const querySnapshot = await getDocs(q);
+
+            resultDiv.style.display = 'block';
+
+            if (querySnapshot.empty) {
+                resultDiv.className = 'result-fail';
+                resultDiv.innerHTML = "일치하는 정보가 없습니다.";
+            } else {
+                let emails = [];
+                querySnapshot.forEach(doc => emails.push(doc.data().email));
+                resultDiv.className = 'result-success';
+                resultDiv.innerHTML = `검색 결과:<br><b>${emails.join(", ")}</b>`;
+            }
+        } catch (e) {
+            alert("조회 중 오류가 발생했습니다.");
+        }
+    });
+</script>
+</body>
+</html>

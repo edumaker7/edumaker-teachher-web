@@ -39,7 +39,7 @@
         .btn-signup { background-color: transparent; color: #495057; border: 1px solid #dee2e6; font-size: 14px; margin-bottom: 16px; }
         .btn-signup:hover { background-color: #f1f3f5; }
         
-        /* 계정 찾기 링크 스타일 (회원가입 버튼 아래 배치) */
+        /* 계정 찾기 링크 스타일 */
         .find-links { margin-top: 20px; font-size: 13px; color: #adb5bd; }
         .find-links a { cursor: pointer; text-decoration: none; color: #adb5bd; margin: 0 10px; transition: 0.2s; }
         .find-links a:hover { color: #868e96; text-decoration: underline; }
@@ -96,8 +96,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw",
@@ -113,63 +113,24 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 핸드폰 번호 포맷팅 (010-XXXX-XXXX)
-        function formatPhoneNumber(input) {
-            const pure = input.replace(/[^0-9]/g, '');
-            if (pure.length === 11) {
-                return pure.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-            }
-            return input;
+        // 🔥 [공통] 팝업창 중앙 정렬 함수
+        function openPopup(url, name, width, height) {
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+            window.open(url, name, `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`);
         }
 
-        // 1. 아이디 찾기
-        document.getElementById('findIdBtn').addEventListener('click', async () => {
-            const name = prompt("가입하신 성함을 입력하세요.");
-            let phone = prompt("가입하신 핸드폰 번호를 입력하세요.");
-            if (!name || !phone) return;
-
-            phone = formatPhoneNumber(phone);
-
-            try {
-                const q = query(collection(db, "users"), where("name", "==", name), where("phone", "==", phone));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    alert("일치하는 정보가 없습니다.");
-                } else {
-                    let emails = [];
-                    querySnapshot.forEach(doc => emails.push(doc.data().email));
-                    alert(`${name} 강사님의 아이디는\n[ ${emails.join(", ")} ] 입니다.`);
-                }
-            } catch (e) { alert("조회 중 오류가 발생했습니다."); }
+        // 1. 아이디 찾기 (find_id.html 호출)
+        document.getElementById('findIdBtn').addEventListener('click', () => {
+            openPopup('find_id.html', 'FindID', 450, 500);
         });
 
-        // 2. 비밀번호 찾기 (본인인증 후 메일 발송)
-        document.getElementById('findPwBtn').addEventListener('click', async () => {
-            const email = prompt("비밀번호를 재설정할 이메일을 입력하세요.");
-            const name = prompt("가입하신 성함을 입력하세요.");
-            let phone = prompt("가입하신 핸드폰 번호를 입력하세요.");
-            if (!email || !name || !phone) return;
-
-            phone = formatPhoneNumber(phone);
-
-            try {
-                const q = query(collection(db, "users"), 
-                            where("email", "==", email), 
-                            where("name", "==", name), 
-                            where("phone", "==", phone));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    alert("정보가 일치하지 않습니다. 본인 확인에 실패했습니다.");
-                } else {
-                    await sendPasswordResetEmail(auth, email);
-                    alert("본인 확인 완료!\n" + email + " 주소로 재설정 메일을 보내드렸습니다. 메일함의 링크를 확인해 주세요.");
-                }
-            } catch (e) { alert("오류가 발생했습니다: " + e.message); }
+        // 2. 비밀번호 찾기 (find_pw.html 호출)
+        document.getElementById('findPwBtn').addEventListener('click', () => {
+            openPopup('find_pw.html', 'FindPW', 450, 580);
         });
 
-        // 로그인
+        // 로그인 로직
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const pw = document.getElementById('password').value;
@@ -180,7 +141,7 @@
             } catch (error) { alert("로그인 실패. 정보를 확인하세요."); }
         });
 
-        // 관리자 모드
+        // 관리자 모드 로직
         document.getElementById('adminBtn').addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const pw = document.getElementById('password').value;
@@ -196,10 +157,7 @@
         document.getElementById('signupBtn').addEventListener('click', () => { window.location.href = 'signup.html'; });
 
         window.openPrivacyPopup = function() {
-            const width = 600, height = 800;
-            const left = (window.screen.width / 2) - (width / 2);
-            const top = (window.screen.height / 2) - (height / 2);
-            window.open('privacy.html', 'PrivacyPolicy', `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+            openPopup('privacy.html', 'PrivacyPolicy', 600, 800);
         }
     </script>
 </body>

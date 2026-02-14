@@ -5,54 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>에듀메이커 - 강의 배정 시스템</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; padding: 40px; margin: 0; }
         .admin-box { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); max-width: 680px; margin: 0 auto; }
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
-        
         .input-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         .required { color: #d93025; margin-left: 3px; font-weight: bold; }
-
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
-        
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; }
         .half-input { flex: 1; } 
-
         .address-row { display: flex; gap: 10px; }
         .addr-search-group { flex: 7; display: flex; gap: 5px; } 
-        .addr-search-group input { flex: 1; cursor: pointer; background-color: #fdfdfd; }
-        
-        /* 검색 버튼 스타일 */
-        .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; padding: 0; display: flex; align-items: center; justify-content: center; }
+        /* 🔥 cursor: pointer 제거 및 배경색 변경 (입력 가능한 느낌으로) */
+        .addr-search-group input { flex: 1; background-color: #fff; }
+        .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         .btn-addr-search:hover { background-color: #5a6268; }
-        
         #classRoom { flex: 3; }
-
         .role-wrapper { display: flex; gap: 10px; }
         #roleSelect { flex: 1; }
         #roleInputDirect { flex: 1; display: none; }
-
         .schedule-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
         .schedule-row input[type="date"] { flex: 2; min-width: 130px; } 
         .time-picker-group { display: flex; gap: 2px; align-items: center; flex: 4; justify-content: flex-end; }
         .time-picker-group select { padding: 8px 2px; text-align: center; font-size: 13px; height: 42px; }
-        .hour-select { width: 50px; }
-        .min-select { width: 50px; }
+        .hour-select, .min-select { width: 50px; }
         .ampm-select { width: 60px; background-color: #f1f3f5; }
         .tilde { font-weight: bold; color: #888; margin: 0 4px; }
-        
         .btn-remove-row { background-color: #ff6b6b; color: white; border: none; border-radius: 8px; width: 35px; height: 42px; cursor: pointer; font-weight: bold; font-size: 18px; margin-left: 5px; }
-        .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; margin-bottom: 10px; transition: 0.2s; }
-        .btn-add-row:hover { background-color: #40c057; }
-
-        .btn-assign { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 15px; transition: 0.3s; }
-        .btn-assign:hover { background-color: #004494; transform: translateY(-1px); }
+        .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; margin-bottom: 10px; }
+        .btn-assign { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 15px; }
         .admin-footer-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-status-link, .btn-list-link { flex: 1; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; box-sizing: border-box; border: 1px solid #e9ecef; }
+        .btn-status-link, .btn-list-link { flex: 1; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #e9ecef; }
     </style>
 </head>
 <body>
@@ -79,7 +65,7 @@
             <input type="text" id="client" placeholder="예: 포항초등학교">
         </div>
         <div class="half-input">
-            <label>강좌명 <span class="required">*</span></label>
+            <label>강좌명</label>
             <input type="text" id="subject" placeholder="예: 생성형 AI 캠프">
         </div>
     </div>
@@ -88,7 +74,7 @@
         <label>강의 장소 (주소 / 교육장소)</label>
         <div class="address-row">
             <div class="addr-search-group">
-                <input type="text" id="address" placeholder="주소 검색 (클릭)" readonly>
+                <input type="text" id="address" placeholder="주소 직접 입력 또는 검색">
                 <button type="button" id="btnAddrSearch" class="btn-addr-search">🔍</button>
             </div>
             <input type="text" id="classRoom" placeholder="상세장소 (예: 2층 컴퓨터실)">
@@ -117,11 +103,11 @@
 
     <div class="row-group">
         <div class="half-input">
-            <label>총 강의 시간 <span class="required">*</span></label>
+            <label>총 강의 시간</label>
             <input type="number" id="classHours" placeholder="예: 4">
         </div>
         <div class="half-input">
-            <label>시간당 강사료 (원) <span class="required">*</span></label>
+            <label>시간당 강사료 (원)</label>
             <input type="text" id="hourlyRate" placeholder="예: 50,000">
         </div>
     </div>
@@ -139,7 +125,7 @@
 
     <div class="input-group">
         <label>비고 (기타 전달사항)</label>
-        <textarea id="note" placeholder="특이사항을 입력하세요. (예: 주차비 지원 불가)" style="height: 80px;"></textarea>
+        <textarea id="note" placeholder="특이사항을 입력하세요." style="height: 80px;"></textarea>
     </div>
 
     <button class="btn-assign" id="assignBtn">강의 배정하기</button>
@@ -169,26 +155,25 @@
 
     emailjs.init("0VVyqizaUqeIcG7FU");
 
-    // 🔥 [수정 3] 주소 검색 로직을 addEventListener로 연결 (가장 안전한 방식)
     function openDaumPostcode() {
         new daum.Postcode({
             oncomplete: function(data) {
                 var roadAddr = data.roadAddress; 
                 var jibunAddr = data.jibunAddress;
                 var finalAddr = roadAddr !== '' ? roadAddr : jibunAddr;
-                if(data.buildingName !== '') {
-                    finalAddr += ' (' + data.buildingName + ')';
-                }
+                if(data.buildingName !== '') finalAddr += ' (' + data.buildingName + ')';
                 document.getElementById("address").value = finalAddr;
                 document.getElementById("classRoom").focus();
             }
         }).open();
     }
 
-    // 버튼과 입력창 클릭 시 주소창 실행
+    // 🔍 돋보기 버튼 클릭 시에만 검색창이 뜨도록 설정 (검색 기능을 돋보기로 집중)
     document.getElementById('btnAddrSearch').addEventListener('click', openDaumPostcode);
-    document.getElementById('address').addEventListener('click', openDaumPostcode);
-
+    
+    /* 🔥 기존 주소창 클릭 시 검색창 뜨는 기능을 제거하거나, 
+       사용자가 원할 때만 뜨게 하고 싶다면 아래 이벤트를 주석 처리하세요. */
+    // document.getElementById('address').addEventListener('click', openDaumPostcode);
 
     const roleSelect = document.getElementById('roleSelect');
     const roleInputDirect = document.getElementById('roleInputDirect');
@@ -316,47 +301,37 @@
         const eduTime = timeList.join(', ');
         const note = document.getElementById('note').value;
         
-        const classHours = document.getElementById('classHours').value;
-        
+        const classHours = document.getElementById('classHours').value ? Number(document.getElementById('classHours').value) : 0;
         const rawHourlyRate = document.getElementById('hourlyRate').value.replace(/,/g, '');
-        const hourlyRate = Number(rawHourlyRate);
+        const hourlyRate = rawHourlyRate ? Number(rawHourlyRate) : 0;
         const rawAdditionalCost = document.getElementById('additionalCost').value.replace(/,/g, '');
-        const additionalCost = Number(rawAdditionalCost);
-        const commissionRate = document.getElementById('commissionRate').value;
+        const additionalCost = rawAdditionalCost ? Number(rawAdditionalCost) : 0;
+        const commissionRate = document.getElementById('commissionRate').value ? Number(document.getElementById('commissionRate').value) : 0;
 
         if (!name) { alert("강사님을 선택해주세요."); return; }
         if (!client) { alert("강의처를 입력해주세요."); return; }
-        if (!subject) { alert("강좌명을 입력해주세요."); return; }
-        if (!address) { alert("강의 장소(주소)를 입력해주세요."); return; } // 주소 체크
-
-        if (!role) { alert("역할을 선택해주세요."); return; }
-        if (document.getElementById('roleSelect').value === 'direct' && !role) {
-             alert("역할을 직접 입력해주세요."); return;
-        }
-
+        if (!role) { alert("역할을 선택(혹은 직접입력)해주세요."); return; }
         if (dateList.length === 0) { alert("교육 일정을 최소 1개 이상 등록해주세요."); return; }
-        if (!classHours) { alert("총 강의 시간을 입력해주세요."); return; }
-        if (!hourlyRate) { alert("시간당 강사료를 입력해주세요."); return; }
 
         try {
-            const lectureFee = Number(classHours) * hourlyRate;
-            const calculatedServiceFee = Math.floor(lectureFee * (Number(commissionRate) / 100));
+            const lectureFee = classHours * hourlyRate;
+            const calculatedServiceFee = Math.floor(lectureFee * (commissionRate / 100));
 
             await addDoc(collection(db, "assignments"), {
                 teacherName: name, 
                 teacherEmail: email,
                 client: client,
-                address: address,
-                classRoom: classRoom,
-                subject: subject,
+                address: address || "-",
+                classRoom: classRoom || "",
+                subject: subject || "내용없음",
                 role: role, 
                 date: eduDate, 
                 time: eduTime, 
                 note: note,
-                classHours: Number(classHours),
+                classHours: classHours,
                 hourlyRate: hourlyRate,
                 additionalCost: additionalCost,
-                commissionRate: Number(commissionRate), 
+                commissionRate: commissionRate, 
                 serviceFee: calculatedServiceFee,      
                 status: "배정완료",
                 createdAt: new Date(),
@@ -368,11 +343,11 @@
                 teacherEmail: email,
                 teacherName: name,
                 client: client,
-                address: address,
-                classRoom: classRoom,
-                subject: subject,
+                address: address || "장소 추후공지",
+                classRoom: classRoom || "",
+                subject: subject || "강좌정보 없음",
                 date: eduDate, 
-                time: eduTime,
+                time: eduTime || "시간 추후공지",
                 role: role, 
                 additionalCost: additionalCost.toLocaleString() 
             };
