@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에듀메이커 강사관리시스템</title>
+    <title>에듀메이커 - 강사 관리 시스템</title>
     <style>
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -24,6 +24,7 @@
             width: 100%;
             max-width: 400px;
             text-align: center;
+            box-sizing: border-box; /* 패딩 포함 너비 계산 */
         }
         .logo { font-size: 32px; font-weight: 900; color: #0056b3; margin-bottom: 8px; letter-spacing: -1.5px; text-transform: uppercase; }
         .sub-title { font-size: 15px; color: #868e96; margin-bottom: 40px; font-weight: 500; }
@@ -120,42 +121,56 @@
             window.open(url, name, `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`);
         }
 
-        // 1. 아이디 찾기 (find_id.html 호출)
+        // 1. 아이디 찾기
         document.getElementById('findIdBtn').addEventListener('click', () => {
             openPopup('find_id.html', 'FindID', 450, 500);
         });
 
-        // 2. 비밀번호 찾기 (find_pw.html 호출)
+        // 2. 비밀번호 찾기
         document.getElementById('findPwBtn').addEventListener('click', () => {
             openPopup('find_pw.html', 'FindPW', 450, 580);
         });
 
-        // 로그인 로직
+        // 3. 강사 로그인 로직
         document.getElementById('loginBtn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
             if(!email || !pw) { alert("정보를 입력해주세요."); return; }
+            
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, pw);
+                // 강사 계정이면 teacher_main.html로, 혹시 관리자면 admin.html로 보냄
                 window.location.href = (userCredential.user.email === "help@edumaker.kr") ? "admin.html" : "teacher_main.html";
-            } catch (error) { alert("로그인 실패. 정보를 확인하세요."); }
+            } catch (error) { 
+                alert("로그인 실패.\n이메일과 비밀번호를 확인해주세요."); 
+            }
         });
 
-        // 관리자 모드 로직
+        // 4. 관리자 모드 로직 (🔥 보안 강화 버전)
         document.getElementById('adminBtn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
-            if (email === "help@edumaker.kr" && pw === "123456") {
+
+            // 관리자 이메일인지 1차 확인
+            if (email === "help@edumaker.kr") {
                 try {
+                    // Firebase 서버에 실제 인증 요청 (여기서 비밀번호 검증됨)
                     await signInWithEmailAndPassword(auth, email, pw);
+                    
                     alert("관리자 권한으로 접속합니다.");
                     window.location.href = "admin.html";
-                } catch (error) { alert("인증 오류가 발생했습니다."); }
-            } else { alert("관리자 계정 정보가 일치하지 않습니다."); }
+                } catch (error) {
+                    alert("관리자 인증 실패: 비밀번호가 올바르지 않습니다.");
+                }
+            } else { 
+                alert("관리자 계정 이메일이 아닙니다."); 
+            }
         });
 
+        // 5. 회원가입 페이지 이동
         document.getElementById('signupBtn').addEventListener('click', () => { window.location.href = 'signup.html'; });
 
+        // 6. 개인정보처리방침 팝업
         window.openPrivacyPopup = function() {
             openPopup('privacy.html', 'PrivacyPolicy', 600, 800);
         }

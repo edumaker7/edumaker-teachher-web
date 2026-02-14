@@ -2,50 +2,77 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강의 정보 수정 - EDUMAKER</title>
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f5; padding: 20px; margin: 0; }
-        .edit-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 650px; margin: 0 auto; }
+        
+        /* 🔥 [수정] max-width와 박스 사이징으로 반응형 대응 */
+        .edit-box { 
+            background: white; padding: 30px; border-radius: 12px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            max-width: 650px; width: 100%; margin: 0 auto; 
+            box-sizing: border-box; 
+        }
+        
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
         .input-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         .required { color: #d93025; margin-left: 3px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
-        .row-group { display: flex; gap: 15px; margin-bottom: 18px; }
-        .half-input { flex: 1; }
-        .address-row { display: flex; gap: 10px; }
-        .addr-search-group { flex: 7; display: flex; gap: 5px; }
+        
+        /* 🔥 [수정] 폰트 16px (아이폰 확대 방지) */
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        
+        /* 반응형: 화면 작아지면 세로 배치 */
+        .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+        .half-input { flex: 1; min-width: 200px; }
+        
+        .address-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .addr-search-group { flex: 7; display: flex; gap: 5px; min-width: 200px; }
         .addr-search-group input { flex: 1; background-color: #fff; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        #classRoom { flex: 3; }
-        .role-wrapper { display: flex; gap: 10px; }
-        #roleSelect { flex: 1; }
-        #roleInputDirect { flex: 1; display: none; }
+        #classRoom { flex: 3; min-width: 150px; }
+        
+        .role-wrapper { display: flex; gap: 10px; flex-wrap: wrap; }
+        #roleSelect { flex: 1; min-width: 120px; }
+        #roleInputDirect { flex: 1; display: none; min-width: 150px; }
+        
         .schedule-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
         .schedule-row input[type="date"] { flex: 2; min-width: 130px; } 
-        .time-picker-group { display: flex; gap: 2px; align-items: center; flex: 4; justify-content: flex-end; }
+        .time-picker-group { display: flex; gap: 2px; align-items: center; flex: 4; justify-content: flex-end; flex-wrap: wrap; }
         .time-picker-group select { padding: 8px 2px; text-align: center; font-size: 13px; height: 42px; width: auto; }
         .hour-select, .min-select { width: 55px !important; }
         .ampm-select { width: 65px !important; background-color: #fff; }
         .tilde { font-weight: bold; color: #888; margin: 0 4px; }
+        
         .btn-remove-row { background-color: #ff6b6b; color: white; border: none; border-radius: 8px; width: 35px; height: 42px; cursor: pointer; font-weight: bold; font-size: 18px; }
         .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
-        .btn-update { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 10px; }
+        
+        /* 버튼 그룹 */
+        .btn-group-bottom { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-update { flex: 2; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
+        .btn-close { flex: 1; padding: 16px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
+        
+        .btn-update:hover { background-color: #004494; }
+        .btn-close:hover { background-color: #5a6268; }
     </style>
 </head>
 <body>
 
 <div class="edit-box">
     <h2>📝 강의 정보 수정</h2>
+    
     <div class="row-group">
         <div class="half-input"><label>강사 성함</label><input type="text" id="teacherName" readonly style="background:#f1f1f1;"></div>
         <div class="half-input"><label>강사 이메일</label><input type="text" id="teacherEmail" readonly style="background:#f1f1f1;"></div>
     </div>
+    
     <div class="row-group">
         <div class="half-input"><label>강의처 <span class="required">*</span></label><input type="text" id="client"></div>
         <div class="half-input"><label>강좌명 <span class="required">*</span></label><input type="text" id="subject"></div>
     </div>
+    
     <div class="input-group">
         <label>강의 장소 <span class="required">*</span></label>
         <div class="address-row">
@@ -53,6 +80,7 @@
             <input type="text" id="classRoom" placeholder="상세장소">
         </div>
     </div>
+    
     <div class="input-group">
         <label>역할 <span class="required">*</span></label>
         <div class="role-wrapper">
@@ -60,21 +88,29 @@
             <input type="text" id="roleInputDirect" placeholder="역할 직접 입력">
         </div>
     </div>
+    
     <div class="input-group">
         <label>교육 일정 <span class="required">*</span></label>
         <div id="scheduleContainer"></div>
         <button type="button" class="btn-add-row" id="addScheduleBtn">+ 일정 추가하기</button>
     </div>
+    
     <div class="row-group">
         <div class="half-input"><label>총 강의 시간 <span class="required">*</span></label><input type="number" id="classHours"></div>
         <div class="half-input"><label>시간당 강사료 <span class="required">*</span></label><input type="text" id="hourlyRate"></div>
     </div>
+    
     <div class="row-group">
         <div class="half-input"><label>추가 비용</label><input type="text" id="additionalCost"></div>
         <div class="half-input"><label>서비스이용료 (%)</label><input type="number" id="commissionRate"></div>
     </div>
+    
     <div class="input-group"><label>비고</label><textarea id="note" style="height: 60px;"></textarea></div>
-    <button class="btn-update" id="updateBtn">수정 내용 저장하기</button>
+    
+    <div class="btn-group-bottom">
+        <button class="btn-close" onclick="window.close()">닫기</button>
+        <button class="btn-update" id="updateBtn">수정 내용 저장하기</button>
+    </div>
 </div>
 
 <script>
@@ -160,7 +196,7 @@
     document.getElementById('addScheduleBtn').onclick = () => addScheduleRow();
 
     document.getElementById('updateBtn').onclick = async () => {
-        const newClient = document.getElementById('client').value.trim(); // 강의처
+        const newClient = document.getElementById('client').value.trim();
         const newSub = document.getElementById('subject').value.trim();
         const newAddr = document.getElementById('address').value.trim();
         const newRoom = document.getElementById('classRoom').value.trim();
@@ -168,7 +204,7 @@
         const newRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
         const newAdd = Number(document.getElementById('additionalCost').value.replace(/,/g, ''));
         const newComm = Number(document.getElementById('commissionRate').value);
-        const newNote = document.getElementById('note').value.trim(); // 비고
+        const newNote = document.getElementById('note').value.trim();
         
         let newRole = document.getElementById('roleSelect').value;
         if (newRole === 'direct') newRole = document.getElementById('roleInputDirect').value.trim();
@@ -183,7 +219,6 @@
         });
         const newDate = dList.join(', '); const newTime = tList.join(', ');
 
-        // 🔥 모든 항목 개별 비교 (강의처, 비고 추가)
         const changedCli = newClient !== (originalData.client || "").trim();
         const changedSub = newSub !== (originalData.subject || "").trim();
         const changedAddr = newAddr !== (originalData.address || "").trim();
@@ -202,7 +237,6 @@
                 date: newDate, time: newTime, classHours: newHours, hourlyRate: newRate, additionalCost: newAdd, commissionRate: newComm,
                 serviceFee: Math.floor((newHours * newRate) * (newComm / 100)), note: newNote,
                 status: "배정완료", isUpdated: true, isPaidTeacher: false, isPaidService: false,
-                // 🔥 변경 플래그 전송 (강의처, 비고 포함)
                 changed_client: changedCli, changed_subject: changedSub, changed_address: changedAddr, 
                 changed_classRoom: changedRoom, changed_role: changedRole, changed_schedule: changedSch, 
                 changed_hours: changedH, changed_rate: changedR, changed_addCost: changedA, 

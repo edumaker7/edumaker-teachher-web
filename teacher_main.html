@@ -14,8 +14,9 @@
         .toggle-btn { border: none; background: none; padding: 8px 12px; font-size: 13px; cursor: pointer; border-radius: 6px; font-weight: bold; color: #666; }
         .toggle-btn.active { background: #fff; color: #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        .assignment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        /* 카드 기본 스타일: 상단 테두리는 인라인으로 동적 처리 */
+        /* 🔥 [수정] 카드 최소 너비를 350px -> 300px로 줄여 소형 모바일 대응 */
+        .assignment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
         .card h3 { margin-top: 0; color: #0056b3; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; align-items: center; }
         .card h3::before { content: '🏫 '; }
@@ -55,7 +56,6 @@
         .logout-btn { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 
         .list-container { display: flex; flex-direction: column; gap: 10px; }
-        /* 리스트 기본 스타일: border-left는 스크립트에서 동적 처리 */
         .list-item { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #ccc; }
         .list-header { padding: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         .lh-info { flex: 1; }
@@ -65,6 +65,17 @@
         .st-wait { background: #fff3cd; color: #856404; }
         .st-ok { background: #d4edda; color: #155724; }
         .list-body { display: none; padding: 0 15px 15px 15px; border-top: 1px solid #eee; background-color: #fafafa; }
+
+        /* 🔥 [추가] 데이터 없음 메시지 스타일 */
+        .no-data-msg {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +83,13 @@
     <div class="container">
         <div class="top-bar">
             <div id="welcome-text" class="welcome-msg">정보 로딩 중...</div>
-            <div style="display:flex; align-items:center; gap:10px;"><div class="view-toggle"><button class="toggle-btn active" id="btn-card" onclick="changeView('card')">🗂️ 카드형</button><button class="toggle-btn" id="btn-list" onclick="changeView('list')">☰ 리스트형</button></div><button class="logout-btn" onclick="handleLogout()">로그아웃</button></div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="btn-card" onclick="changeView('card')">🗂️ 카드형</button>
+                    <button class="toggle-btn" id="btn-list" onclick="changeView('list')">☰ 리스트형</button>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
+            </div>
         </div>
         <div id="card-view-container" class="assignment-grid"></div>
         <div id="list-view-container" class="list-container" style="display:none;"></div>
@@ -193,18 +210,19 @@
                     
                     ${isConfirmed ? `<span class="confirmed-msg">👍 확인 완료됨</span>` : `<button class="check-btn" onclick="confirmAssignment('${data.id}')">${showUpd ? '변경된 강의내용 확인하기' : '강의 배정 확인하기'}</button>`}`;
 
-                // 🔥 확인 시 초록색(#28a745), 미확인 시 빨간색(#d93025) 적용
                 const statusColor = isConfirmed ? '#28a745' : '#d93025';
 
-                // 카드형: 상단 테두리(border-top) 색상 변경
                 cardHtml += `<div class="card" style="border-top: 5px solid ${statusColor};"><h3><span class="${hlCli}">${data.client}</span> ${updBadge}</h3>${generateCommonHtml('card')}</div>`;
                 
-                // 리스트형: 왼쪽 테두리(border-left) 색상 변경
                 listHtml += `<div class="list-item" style="border-left-color:${statusColor}">
                     <div class="list-header" onclick="toggleDetail('${data.id}')"><div class="lh-info"><div class="lh-date">${data.date.split(', ')[0]}</div><div class="lh-title"><span class="${hlCli}">${data.client}</span> ${updBadge}</div></div><span class="lh-status ${isConfirmed?'st-ok':'st-wait'}">${isConfirmed?'확인완료':'확인대기'}</span></div>
                     <div class="list-body" id="detail-${data.id}">${generateCommonHtml('list')}</div></div>`;
             });
-            cardCon.innerHTML = cardHtml || '<div style="text-align:center; padding:40px; color:#888;">배정된 강의 내역이 없습니다.</div>'; listCon.innerHTML = listHtml;
+            
+            // 🔥 [수정] 데이터 없을 때 안내 메시지
+            const noDataHtml = '<div class="no-data-msg">📭 현재 배정된 강의 내역이 없습니다.</div>';
+            cardCon.innerHTML = cardHtml || noDataHtml; 
+            listCon.innerHTML = listHtml || noDataHtml;
         }
 
         window.toggleDetail = (id) => { const el = document.getElementById(`detail-${id}`); el.style.display = el.style.display === 'block' ? 'none' : 'block'; }

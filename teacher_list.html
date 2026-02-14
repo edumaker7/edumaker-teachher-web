@@ -6,50 +6,74 @@
     <title>에듀메이커 - 강사 명단 관리</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f7f9; padding: 40px; margin: 0; color: #333; }
+        
         .container { background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); max-width: 1200px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .logo { font-size: 24px; font-weight: 800; color: #0056b3; cursor: pointer; text-decoration: none; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        /* 🔥 [수정] 테이블 반응형 래퍼 (가로 스크롤) */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 테이블 최소 너비 설정 (항목이 뭉개지지 않게) */
+        table { width: 100%; min-width: 800px; border-collapse: collapse; }
+        
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; white-space: nowrap; }
         th { background-color: #fcfcfc; color: #555; font-weight: 700; }
         tr:hover { background-color: #f9fbff; }
 
         .col-num { width: 60px; text-align: center; color: #999; }
         .col-date { width: 130px; color: #666; }
+        
         .btn-delete {
             background-color: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; padding: 7px 14px;
             border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
         }
         .btn-delete:hover { background-color: #ff4d4f; color: white; }
         .btn-back { background-color: #0056b3; color: white; text-decoration: none; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+
+        /* 모바일 패딩 조정 */
+        @media (max-width: 600px) {
+            body { padding: 20px; }
+            .container { padding: 20px; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .btn-back { width: 100%; text-align: center; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <a href="admin.html" class="logo">EDUMAKER ADMIN</a>
-        <h2 style="margin:0;">📋 강사 통합 명단</h2>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <a href="admin.html" class="logo">EDUMAKER ADMIN</a>
+            <h2 style="margin:0; font-size:18px;">📋 강사 통합 명단</h2>
+        </div>
         <a href="admin.html" class="btn-back">관리자 홈으로</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th class="col-num">번호</th>
-                <th class="col-date">가입날짜</th>
-                <th>이름</th>
-                <th>전화번호</th>
-                <th>이메일주소(아이디)</th>
-                <th>활동지역</th>
-                <th style="text-align: center;">관리</th>
-            </tr>
-        </thead>
-        <tbody id="teacherTableBody">
-            <tr><td colspan="7" style="text-align:center; padding:50px; color:#999;">데이터를 안정적으로 불러오는 중입니다...</td></tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-num">번호</th>
+                    <th class="col-date">가입날짜</th>
+                    <th>이름</th>
+                    <th>전화번호</th>
+                    <th>이메일주소(아이디)</th>
+                    <th>활동지역</th>
+                    <th style="text-align: center;">관리</th>
+                </tr>
+            </thead>
+            <tbody id="teacherTableBody">
+                <tr><td colspan="7" style="text-align:center; padding:50px; color:#999;">데이터를 안정적으로 불러오는 중입니다...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script type="module">
@@ -69,7 +93,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // [날짜 변환 함수] 한글 깨짐 방지용 안전 장치 포함
+    // 날짜 변환 함수
     function formatDate(timestamp) {
         if (!timestamp) return "-";
         try {
@@ -80,8 +104,7 @@
 
     const teacherTableBody = document.getElementById('teacherTableBody');
 
-    // [핵심 데이터 로드 로직]
-    // 'users' 컬렉션에서 'createdAt' 필드 기준으로 내림차순 정렬하여 데이터를 가져옵니다.
+    // 강사 목록 불러오기 (가입일 내림차순)
     const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
 
     onSnapshot(q, (snapshot) => {
@@ -95,21 +118,18 @@
 
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
+            // 관리자 계정은 목록에서 숨김
             if (data.email === "help@edumaker.kr") return;
-
-            /* [데이터베이스 필드 호출 안내 - Firestore 'users' 컬렉션]
-               DB에서 데이터를 꺼내올 때 사용하는 필드명(Key) 리스트입니다.
-               - data.createdAt    : 가입 날짜 (formatDate 함수를 통해 변환)
-               - data.name         : 강사 성함
-               - data.phone        : 연락처
-               - data.email        : 강사 이메일 (계정 아이디)
-               - data.region       : 활동 지역
-            */
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="col-num">${num++}</td>
-                <td class="col-date">${formatDate(data.createdAt)}</td> <td style="font-weight:700;">${String(data.name || '-')}</td> <td>${String(data.phone || '-')}</td>                          <td>${String(data.email || '-')}</td>                          <td>${String(data.region || '-')}</td>                         <td style="text-align: center;">
+                <td class="col-date">${formatDate(data.createdAt)}</td>
+                <td style="font-weight:700;">${String(data.name || '-')}</td>
+                <td>${String(data.phone || '-')}</td>
+                <td>${String(data.email || '-')}</td>
+                <td>${String(data.region || '-')}</td>
+                <td style="text-align: center;">
                     <button class="btn-delete" onclick="deleteTeacher('${docSnap.id}', '${data.name}')">삭제</button>
                 </td>
             `;
@@ -118,11 +138,11 @@
     });
 
     window.deleteTeacher = async function(id, name) {
-        if (confirm(`'${name}' 강사님의 정보를 삭제하시겠습니까?`)) {
+        if (confirm(`'${name}' 강사님의 정보를 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.`)) {
             try {
                 await deleteDoc(doc(db, "users", id));
                 alert("삭제되었습니다.");
-            } catch (error) { alert("삭제 실패"); }
+            } catch (error) { alert("삭제 실패: " + error.message); }
         }
     }
 </script>

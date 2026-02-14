@@ -2,16 +2,25 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아이디 찾기 - EDUMAKER</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .popup-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        
+        /* 🔥 [수정] 고정 폭 대신 최대 폭을 사용하여 작은 화면 대응 */
+        .popup-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; box-sizing: border-box; }
+        
         .logo { font-size: 24px; font-weight: 900; color: #0056b3; margin-bottom: 20px; }
         .input-group { text-align: left; margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 700; color: #495057; margin-bottom: 8px; }
-        input { width: 100%; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        
+        /* 🔥 [수정] 아이폰 확대 방지 (16px) */
+        input { width: 100%; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        
         .btn-find { width: 100%; padding: 14px; background-color: #0056b3; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        #result { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.6; }
+        .btn-find:hover { background-color: #004494; }
+        
+        #result { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; line-height: 1.6; word-break: break-all; }
         .result-success { background-color: #e7f1ff; color: #0056b3; border: 1px solid #cfe2ff; }
         .result-fail { background-color: #fff2f2; color: #dc3545; border: 1px solid #ffcccc; }
     </style>
@@ -70,6 +79,7 @@
         }
 
         try {
+            // DB에서 이름과 전화번호가 모두 일치하는 사용자 검색
             const q = query(collection(db, "users"), where("name", "==", name), where("phone", "==", phone));
             const querySnapshot = await getDocs(q);
 
@@ -77,15 +87,18 @@
 
             if (querySnapshot.empty) {
                 resultDiv.className = 'result-fail';
-                resultDiv.innerHTML = "일치하는 정보가 없습니다.";
+                resultDiv.innerHTML = "일치하는 정보가 없습니다.<br>입력하신 정보를 확인해주세요.";
             } else {
                 let emails = [];
                 querySnapshot.forEach(doc => emails.push(doc.data().email));
+                
                 resultDiv.className = 'result-success';
+                // 여러 계정이 있을 경우 쉼표로 구분하여 보여줌
                 resultDiv.innerHTML = `검색 결과:<br><b>${emails.join(", ")}</b>`;
             }
         } catch (e) {
             alert("조회 중 오류가 발생했습니다.");
+            console.error(e);
         }
     });
 </script>

@@ -21,11 +21,16 @@
             border-radius: 16px;
             box-shadow: 0 4px 25px rgba(0,0,0,0.05);
         }
-        h1 { color: #0056b3; font-size: 26px; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 30px; }
-        h2 { color: #1a1a1a; font-size: 19px; margin-top: 35px; margin-bottom: 12px; font-weight: 700; }
-        p, li { font-size: 15px; color: #444; margin-bottom: 10px; }
+        h1 { color: #0056b3; font-size: 26px; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 30px; word-break: keep-all; }
+        h2 { color: #1a1a1a; font-size: 19px; margin-top: 35px; margin-bottom: 12px; font-weight: 700; word-break: keep-all; }
+        p, li { font-size: 15px; color: #444; margin-bottom: 10px; word-break: keep-all; }
         ul { padding-left: 20px; }
         .highlight { font-weight: 700; color: #1a1a1a; }
+        
+        /* 링크 스타일 추가 */
+        a { color: #0056b3; text-decoration: none; word-break: break-all; }
+        a:hover { text-decoration: underline; }
+
         .footer { 
             margin-top: 60px; 
             padding-top: 20px;
@@ -34,8 +39,28 @@
             color: #999; 
             text-align: center; 
         }
+
+        /* 닫기 버튼 스타일 */
+        .btn-close {
+            display: block;
+            width: 100%;
+            max-width: 200px;
+            margin: 40px auto 0;
+            padding: 12px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-close:hover { background-color: #333; }
+
         @media (max-width: 600px) {
             .container { padding: 30px 20px; }
+            h1 { font-size: 22px; }
+            h2 { font-size: 17px; }
         }
     </style>
 </head>
@@ -76,9 +101,11 @@
     <h2>6. 개인정보 보호책임자 및 문의처</h2>
     <p>개인정보 관련 문의사항이나 의견은 아래의 연락처로 연락해 주시기 바랍니다.</p>
     <ul>
-        <li><span class="highlight">이메일:</span> edumaker08@gmail.com</li>
-        <li><span class="highlight">카카오채널:</span> http://pf.kakao.com/_xhSsRb</li>
+        <li><span class="highlight">이메일:</span> <a href="mailto:edumaker08@gmail.com">edumaker08@gmail.com</a></li>
+        <li><span class="highlight">카카오채널:</span> <a href="http://pf.kakao.com/_xhSsRb" target="_blank">http://pf.kakao.com/_xhSsRb</a></li>
     </ul>
+
+    <button class="btn-close" onclick="window.close()">창 닫기</button>
 
     <div class="footer">
         © 2026 EDUMAKER. <br>
