@@ -57,7 +57,6 @@
         /* 버튼 그룹 스타일 */
         .btn-group-top { display: flex; gap: 8px; }
         .logout-btn { background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        /* 🔥 [추가] 마이페이지 버튼 스타일 */
         .mypage-btn { background: #0056b3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .mypage-btn:hover { background: #004494; }
 
@@ -154,7 +153,6 @@
                 const hlCli = (showUpd && data.changed_client) ? "highlight" : "";
                 const hlSub = (showUpd && data.changed_subject) ? "highlight" : "";
                 const hlAddr = (showUpd && data.changed_address) ? "highlight" : "";
-                const hlRoom = (showUpd && data.changed_classRoom) ? "highlight" : "";
                 const hlRole = (showUpd && data.changed_role) ? "highlight" : "";
                 const hlSch = (showUpd && data.changed_schedule) ? "highlight" : "";
                 const hlH = (showUpd && data.changed_hours) ? "highlight" : "";
@@ -174,7 +172,6 @@
                 const generateCommonHtml = (prefix) => `
                     <div class="info-single"><p><b>📚 강좌명</b> : &nbsp;<span class="${hlSub}">${data.subject}</span></p></div>
                     <div class="info-single"><p><b>📍 강의장소</b> : &nbsp;<span class="${hlAddr}"><a href="https://map.naver.com/v5/search/${encodeURIComponent(data.address)}" target="_blank" class="map-link" style="text-decoration: underline; color: inherit;">${data.address} 🔗</a></span></p></div>
-                    <div class="info-single"><p><b>🏫 교육장소</b> : &nbsp;<span class="${hlRoom}">${data.classRoom || '미정'}</span></p></div>
                     <div class="info-single"><p><b>🎖️ 역할</b> : &nbsp;<span class="${hlRole}">${data.role}</span></p></div>
                     <div style="margin-top: 10px; font-weight: bold; color: #555; font-size:13px;">📆 교육 일정 ${showUpd && data.changed_schedule ? '(변경됨)' : ''}</div>
                     <div class="${hlSch}" style="display:inline-block; width:100%;">${schHtml}</div>

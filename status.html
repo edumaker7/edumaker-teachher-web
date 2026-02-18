@@ -17,10 +17,8 @@
         .filter-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
         .filter-bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 13px; background-color: white; }
         
-        /* 날짜 입력창 스타일 */
         .filter-bar input[type="date"] { padding: 7px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 13px; font-family: inherit; }
         
-        /* 조회 및 초기화 버튼 스타일 */
         .btn-search { background-color: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .btn-search:hover { background-color: #004494; }
         .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
@@ -34,8 +32,9 @@
 
         .col-no { width: 45px; text-align: center; font-weight: bold; color: #666; }
         .col-date { width: 115px; text-align: center; }
-        .col-user { width: 140px; text-align: center; }
-        .col-info { width: 170px; padding-left: 35px !important; } 
+        .col-user { width: 160px; text-align: center; }
+        /* 🔥 [수정] 강좌명 칸 너비 살짝 늘림 (잘림 방지 보조) */
+        .col-info { width: 200px; padding-left: 20px !important; } 
         .col-pay { width: 105px; text-align: right; padding-right: 15px !important; }
         .col-total { width: 125px; text-align: right; padding-right: 15px !important; }
         .col-note { width: 160px; }
@@ -78,17 +77,27 @@
             .sum-divider { display: none; }
             .header { flex-direction: column; align-items: flex-start; }
             .btn-back { width: 100%; text-align: center; box-sizing: border-box; }
-            .filter-bar { gap: 10px; } /* 모바일에서 필터 간격 축소 */
+            .filter-bar { gap: 10px; }
         }
 
-        .text-line { display: block; margin-bottom: 2px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* 🔥 [수정] 텍스트 잘림 해결 (줄바꿈 허용) */
+        .text-line { 
+            display: block; 
+            margin-bottom: 3px; 
+            line-height: 1.4; 
+            /* 기존의 nowrap(한줄강제) 제거 -> normal(자동줄바꿈) */
+            white-space: normal; 
+            /* 단어 중간에 끊기지 않고 자연스럽게 줄바꿈 */
+            word-break: keep-all; 
+        }
+        
         .text-main { font-weight: 600; color: #333; }
         .text-sub { font-size: 11.5px; color: #666; }
+        
+        .text-client { font-size: 11.5px; color: #6741d9; font-weight: 600; margin-top: 2px; }
+
         .text-green { color: #28a745; font-size: 11px; font-weight: 600; }
-        
-        /* 🔥 [추가] 서비스 이용료 파란색 강조 스타일 */
         .text-blue { color: #0056b3; font-weight: 700; font-size: 13px; }
-        
         .text-red { color: #d93025; font-weight: 700; font-size: 14px; }
 
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
@@ -127,6 +136,8 @@
         <div class="filter-item"><strong>🔍 강사 :</strong><select id="teacherFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
         <div class="filter-item"><strong>🏫 강의처 :</strong><select id="clientFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
         
+        <div class="filter-item"><strong>🏛️ 의뢰처 :</strong><select id="requestClientFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
+        
         <div class="filter-item" style="margin-left:auto; display:flex; align-items:center; gap:5px;">
             <strong>📅 기간 :</strong>
             <input type="date" id="startDate"> ~ <input type="date" id="endDate">
@@ -141,7 +152,7 @@
                 <tr>
                     <th class="col-no">No</th>
                     <th class="col-date">교육일자/시간</th>
-                    <th class="col-user">이름/이메일</th>
+                    <th class="col-user">이름/이메일/의뢰처</th>
                     <th class="col-info">강의처 / 강좌명 / 역할</th>
                     <th class="col-pay">시간 / 시급 / 추가</th>
                     <th class="col-total">서비스 / 수수료 / 합계</th>
@@ -215,7 +226,11 @@
                 <tr class="${isFinished ? 'row-finished' : ''}">
                     <td class="col-no">${index + 1}</td>
                     <td class="col-date">${schHtml}</td>
-                    <td class="col-user"><span class="text-main">${data.teacherName}</span><br><span class="text-sub">${data.teacherEmail}</span></td>
+                    <td class="col-user">
+                        <span class="text-main">${data.teacherName}</span><br>
+                        <span class="text-sub">${data.teacherEmail}</span><br>
+                        <span class="text-client">${data.requestClient || '-'}</span>
+                    </td>
                     <td class="col-info">
                         <span class="text-line"><b style="color:#0056b3;">${data.client}</b></span>
                         <span class="text-line">${data.subject}</span>
@@ -279,26 +294,38 @@
     onSnapshot(query(collection(db, "assignments"), orderBy("createdAt", "desc"), limit(200)), (sn) => {
         allAssignments = sn.docs.map(d => ({ id: d.id, data: d.data() }));
         
-        // 콤보박스 옵션 채우기
-        const tSet = new Set(); const cSet = new Set();
-        allAssignments.forEach(i => { if(i.data.teacherName) tSet.add(i.data.teacherName); if(i.data.client) cSet.add(i.data.client); });
+        // 콤보박스 옵션 채우기 (강사, 강의처, 의뢰처)
+        const tSet = new Set(); 
+        const cSet = new Set();
+        const rSet = new Set(); // 🔥 의뢰처 Set 추가
+
+        allAssignments.forEach(i => { 
+            if(i.data.teacherName) tSet.add(i.data.teacherName); 
+            if(i.data.client) cSet.add(i.data.client);
+            if(i.data.requestClient) rSet.add(i.data.requestClient); // 🔥 데이터 수집
+        });
         
-        // 기존 선택값 유지 (필터링 후 리렌더링 방지)
+        // 기존 선택값 유지
         const tSelect = document.getElementById('teacherFilter');
         const cSelect = document.getElementById('clientFilter');
+        const rSelect = document.getElementById('requestClientFilter'); // 🔥 선택자 추가
+
         const currentT = tSelect.value;
         const currentC = cSelect.value;
+        const currentR = rSelect.value;
 
         tSelect.innerHTML = `<option value="all">전체</option>` + Array.from(tSet).map(t => `<option value="${t}" ${t===currentT?'selected':''}>${t}</option>`).join('');
         cSelect.innerHTML = `<option value="all">전체</option>` + Array.from(cSet).map(c => `<option value="${c}" ${c===currentC?'selected':''}>${c}</option>`).join('');
+        // 🔥 의뢰처 옵션 추가
+        rSelect.innerHTML = `<option value="all">전체</option>` + Array.from(rSet).map(r => `<option value="${r}" ${r===currentR?'selected':''}>${r}</option>`).join('');
         
-        // 최초 로딩 시에는 전체 목록 렌더링, 이후에는 현재 필터 상태에 맞춰 렌더링
         window.filterAssignments(); 
     });
 
     window.filterAssignments = () => {
         const t = document.getElementById('teacherFilter').value;
         const c = document.getElementById('clientFilter').value;
+        const r = document.getElementById('requestClientFilter').value; // 🔥 의뢰처 값 가져오기
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
@@ -311,12 +338,12 @@
             // 2. 강의처 필터
             if (c !== "all" && data.client !== c) return false;
 
-            // 3. 날짜 기간 필터 (다중 날짜 처리)
+            // 3. 🔥 의뢰처 필터
+            if (r !== "all" && data.requestClient !== r) return false;
+
+            // 4. 날짜 기간 필터
             if (startDate && endDate) {
-                // 데이터의 날짜 문자열(예: "2024-01-01, 2024-01-02")을 배열로 분리
                 const dates = (data.date || "").split(', ');
-                
-                // 강의 날짜 중 하나라도 검색 범위 안에 있으면 포함 (some 함수)
                 const isWithinRange = dates.some(d => d >= startDate && d <= endDate);
                 if (!isWithinRange) return false;
             }
@@ -330,6 +357,7 @@
     window.resetFilters = () => {
         document.getElementById('teacherFilter').value = 'all';
         document.getElementById('clientFilter').value = 'all';
+        document.getElementById('requestClientFilter').value = 'all'; // 🔥 초기화 추가
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
         window.filterAssignments();

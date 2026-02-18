@@ -20,10 +20,8 @@
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         .required { color: #d93025; margin-left: 3px; font-weight: bold; }
         
-        /* 기본 인풋 스타일 (16px로 아이폰 확대 방지) */
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
-        /* 레이아웃 그룹 */
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
         
@@ -31,13 +29,14 @@
         .addr-search-group { flex: 7; display: flex; gap: 5px; min-width: 200px; }
         .addr-search-group input { flex: 1; background-color: #fff; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        #classRoom { flex: 3; min-width: 150px; }
+        
+        /* 🔥 강의의뢰처 스타일 */
+        #requestClient { flex: 3; min-width: 150px; }
         
         .role-wrapper { display: flex; gap: 10px; flex-wrap: wrap; }
         #roleSelect { flex: 1; min-width: 120px; }
         #roleInputDirect { flex: 1; display: none; min-width: 150px; }
         
-        /* 🔥 [수정] 일정 입력 Row 디자인 개선 */
         .schedule-row { 
             display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; 
             align-items: center; padding: 12px; 
@@ -47,20 +46,14 @@
             flex: 1; min-width: 140px; background: #fff; border: 1px solid #ced4da;
         } 
 
-        /* 시간 선택 그룹 */
-        .time-picker-group { 
-            display: flex; align-items: center; gap: 5px; flex: 2; 
-            justify-content: flex-end; flex-wrap: wrap; 
-        }
+        .time-picker-group { display: flex; align-items: center; gap: 5px; flex: 2; justify-content: flex-end; flex-wrap: wrap; }
 
-        /* 개별 시간 세트 (오후 01:00) 박스 디자인 */
         .time-set {
             display: flex; align-items: center; gap: 2px;
             background: #fff; border: 1px solid #ced4da; border-radius: 6px;
             padding: 0 5px; height: 45px;
         }
 
-        /* 시간 선택 셀렉트 박스 (너비 강제 100% 해제) */
         .time-set select {
             width: auto !important; 
             border: none; background: transparent;
@@ -74,7 +67,6 @@
         
         .tilde { font-weight: bold; color: #888; margin: 0 2px; }
         
-        /* 삭제 버튼 디자인 */
         .btn-remove-row { 
             background-color: #ff6b6b; color: white; border: none; 
             border-radius: 6px; width: 40px; height: 45px; 
@@ -84,7 +76,6 @@
 
         .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
         
-        /* 버튼 그룹 */
         .btn-group-bottom { display: flex; gap: 10px; margin-top: 20px; }
         .btn-update { flex: 2; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
         .btn-close { flex: 1; padding: 16px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
@@ -92,11 +83,10 @@
         .btn-update:hover { background-color: #004494; }
         .btn-close:hover { background-color: #5a6268; }
 
-        /* 🔥 모바일 최적화 (화면 좁을 때) */
         @media (max-width: 600px) {
             .schedule-row input[type="date"] { width: 100%; flex: 100%; margin-bottom: 5px; }
             .time-picker-group { width: 100%; justify-content: space-between; flex: 100%; }
-            .time-set { flex: 1; justify-content: center; } /* 시간 박스 균등 분할 */
+            .time-set { flex: 1; justify-content: center; } 
             .btn-remove-row { width: 100%; margin-top: 5px; height: 35px; }
         }
     </style>
@@ -117,10 +107,10 @@
     </div>
     
     <div class="input-group">
-        <label>강의 장소 <span class="required">*</span></label>
+        <label>강의 장소 및 의뢰처 <span class="required">*</span></label>
         <div class="address-row">
             <div class="addr-search-group"><input type="text" id="address" placeholder="주소 직접 입력 또는 검색"><button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button></div>
-            <input type="text" id="classRoom" placeholder="상세장소">
+            <input type="text" id="requestClient" placeholder="강의의뢰처">
         </div>
     </div>
     
@@ -160,7 +150,7 @@
     function openDaumPostcode() {
         new daum.Postcode({ oncomplete: function(data) {
             document.getElementById("address").value = data.roadAddress || data.jibunAddress;
-            document.getElementById("classRoom").focus();
+            document.getElementById("requestClient").focus(); // 🔥 포커스 이동 변경
         }}).open();
     }
 </script>
@@ -183,7 +173,6 @@
         let options = ''; for(let i=0; i<60; i+=5) { let val = i.toString().padStart(2, '0'); options += `<option value="${val}" ${val === selected ? 'selected' : ''}>${val}</option>`; } return options;
     }
 
-    // 🔥 [수정] JS: HTML 구조를 time-set으로 감싸도록 변경
     window.addScheduleRow = function(dateValue = '', timeString = '') {
         const container = document.getElementById('scheduleContainer');
         const row = document.createElement('div');
@@ -228,7 +217,8 @@
                 document.getElementById('client').value = originalData.client;
                 document.getElementById('subject').value = originalData.subject;
                 document.getElementById('address').value = originalData.address;
-                document.getElementById('classRoom').value = originalData.classRoom || '';
+                // 🔥 [수정] 데이터 불러오기: classRoom -> requestClient
+                document.getElementById('requestClient').value = originalData.requestClient || ''; 
                 document.getElementById('classHours').value = originalData.classHours;
                 document.getElementById('hourlyRate').value = Number(originalData.hourlyRate).toLocaleString();
                 document.getElementById('additionalCost').value = Number(originalData.additionalCost || 0).toLocaleString();
@@ -261,7 +251,8 @@
         const newClient = document.getElementById('client').value.trim();
         const newSub = document.getElementById('subject').value.trim();
         const newAddr = document.getElementById('address').value.trim();
-        const newRoom = document.getElementById('classRoom').value.trim();
+        // 🔥 [수정] 변수명 변경: newRoom -> newReqClient
+        const newReqClient = document.getElementById('requestClient').value.trim(); 
         const newHours = Number(document.getElementById('classHours').value);
         const newRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
         const newAdd = Number(document.getElementById('additionalCost').value.replace(/,/g, ''));
@@ -284,7 +275,8 @@
         const changedCli = newClient !== (originalData.client || "").trim();
         const changedSub = newSub !== (originalData.subject || "").trim();
         const changedAddr = newAddr !== (originalData.address || "").trim();
-        const changedRoom = newRoom !== (originalData.classRoom || "").trim();
+        // 🔥 [수정] 변경 감지 로직: requestClient 비교
+        const changedReqClient = newReqClient !== (originalData.requestClient || "").trim();
         const changedRole = newRole !== (originalData.role || "").trim();
         const changedSch = (newDate !== originalData.date) || (newTime !== originalData.time);
         const changedH = newHours !== Number(originalData.classHours || 0);
@@ -295,12 +287,15 @@
 
         try {
             await updateDoc(doc(db, "assignments", docId), {
-                client: newClient, subject: newSub, address: newAddr, classRoom: newRoom, role: newRole,
+                client: newClient, subject: newSub, address: newAddr, 
+                requestClient: newReqClient, // 🔥 필드 저장
+                role: newRole,
                 date: newDate, time: newTime, classHours: newHours, hourlyRate: newRate, additionalCost: newAdd, commissionRate: newComm,
                 serviceFee: Math.floor((newHours * newRate) * (newComm / 100)), note: newNote,
                 status: "배정완료", isUpdated: true, isPaidTeacher: false, isPaidService: false,
                 changed_client: changedCli, changed_subject: changedSub, changed_address: changedAddr, 
-                changed_classRoom: changedRoom, changed_role: changedRole, changed_schedule: changedSch, 
+                changed_requestClient: changedReqClient, // 🔥 변경 여부 저장
+                changed_role: changedRole, changed_schedule: changedSch, 
                 changed_hours: changedH, changed_rate: changedR, changed_addCost: changedA, 
                 changed_comm: changedC, changed_note: changedN
             });

@@ -8,7 +8,6 @@
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <style>
-        /* ... (CSS 스타일은 기존과 동일하므로 생략하지 않고 전체 유지) ... */
         body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; padding: 40px; margin: 0; }
         
         .admin-box { 
@@ -33,7 +32,9 @@
         .addr-search-group input { flex: 1; background-color: #fff; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         .btn-addr-search:hover { background-color: #5a6268; }
-        #classRoom { flex: 3; min-width: 150px; }
+        
+        /* 🔥 강의의뢰처 입력란 스타일 */
+        #requestClient { flex: 3; min-width: 150px; }
         
         .role-wrapper { display: flex; gap: 10px; flex-wrap: wrap; }
         #roleSelect { flex: 1; min-width: 150px; }
@@ -49,13 +50,17 @@
 
         .time-picker-group { display: flex; align-items: center; gap: 5px; flex: 2; justify-content: flex-end; flex-wrap: wrap; }
 
+        /* 🔥 시간 선택 UI 깨짐 방지를 위한 스타일 수정 */
         .time-set {
             display: flex; align-items: center; gap: 2px;
             background: #fff; border: 1px solid #ced4da; border-radius: 6px;
             padding: 0 5px; height: 45px;
         }
 
-        .time-set select { width: auto !important; border: none; background: transparent; padding: 0 2px; font-size: 14px; text-align: center; height: 100%; }
+        .time-set select { 
+            width: auto !important; /* 100% 너비 해제 */
+            border: none; background: transparent; padding: 0 2px; font-size: 14px; text-align: center; height: 100%; 
+        }
         .time-set select:focus { outline: none; }
 
         .ampm-select { font-weight: bold; color: #0056b3; width: 55px !important; }
@@ -116,13 +121,13 @@
     </div>
 
     <div class="input-group">
-        <label>강의 장소 (주소 / 교육장소)</label>
+        <label>강의 장소 및 의뢰처 (주소 / 강의의뢰처)</label>
         <div class="address-row">
             <div class="addr-search-group">
                 <input type="text" id="address" placeholder="주소 직접 입력 또는 검색">
                 <button type="button" id="btnAddrSearch" class="btn-addr-search">🔍</button>
             </div>
-            <input type="text" id="classRoom" placeholder="상세장소 (예: 2층 컴퓨터실)">
+            <input type="text" id="requestClient" placeholder="강의의뢰처 (관리자 전용)">
         </div>
     </div>
 
@@ -208,7 +213,7 @@
                 var finalAddr = roadAddr !== '' ? roadAddr : jibunAddr;
                 if(data.buildingName !== '') finalAddr += ' (' + data.buildingName + ')';
                 document.getElementById("address").value = finalAddr;
-                document.getElementById("classRoom").focus();
+                document.getElementById("requestClient").focus();
             }
         }).open();
     }
@@ -242,10 +247,7 @@
             const querySnapshot = await getDocs(collection(db, "users"));
             querySnapshot.forEach((doc) => {
                 const userData = doc.data();
-                
-                // 🔥 [수정] 관리자 계정은 목록에서 제외하는 로직 추가
                 if (userData.email === "help@edumaker.kr") return;
-
                 if(userData.name && userData.email) {
                     teachersData.push(userData);
                     const option = document.createElement('option');
@@ -290,7 +292,6 @@
 
         row.innerHTML = `
             <input type="date" class="input-date">
-            
             <div class="time-picker-group">
                 <div class="time-set">
                     <select class="ampm-start ampm-select">
@@ -312,7 +313,6 @@
                     <select class="min-end min-select">${minOpts}</select>
                 </div>
             </div>
-            
             <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">-</button>
         `;
         scheduleContainer.appendChild(row);
@@ -329,7 +329,7 @@
         const client = document.getElementById('client').value;
         const subject = document.getElementById('subject').value;
         const address = document.getElementById('address').value;
-        const classRoom = document.getElementById('classRoom').value;
+        const requestClient = document.getElementById('requestClient').value; // 🔥 강의의뢰처 변수
         
         let role = document.getElementById('roleSelect').value;
         if (role === 'direct') {
@@ -379,7 +379,7 @@
                 teacherEmail: email,
                 client: client,
                 address: address || "-",
-                classRoom: classRoom || "",
+                requestClient: requestClient || "", // 🔥 DB에는 저장 (관리자 확인용)
                 subject: subject || "내용없음",
                 role: role, 
                 date: eduDate, 
@@ -401,7 +401,7 @@
                 teacherName: name,
                 client: client,
                 address: address || "장소 추후공지",
-                classRoom: classRoom || "",
+                /* 🔥 강사에게 보내는 이메일 항목에서 requestClient(강의의뢰처) 제외 */
                 subject: subject || "강좌정보 없음",
                 date: eduDate, 
                 time: eduTime || "시간 추후공지",
