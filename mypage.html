@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 정보 수정 - EDUMAKER</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f4f7f9; padding: 20px; margin: 0; }
+        .edit-container { 
+            background: #fff; padding: 35px; border-radius: 16px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+            max-width: 500px; margin: 20px auto; 
+        }
+        .header-title { 
+            font-size: 22px; font-weight: 800; color: #0056b3; 
+            text-align: center; margin-bottom: 30px; border-bottom: 2px solid #0056b3; padding-bottom: 15px;
+        }
+        
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+        
+        /* 읽기 전용 필드 스타일 (회색 배경) */
+        input[readonly] { background-color: #f1f3f5; color: #6c757d; cursor: not-allowed; }
+        
+        input { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; 
+            border-radius: 8px; box-sizing: border-box; font-size: 16px; 
+        }
+        
+        /* 비밀번호 변경 안내 */
+        .pw-guide { font-size: 12px; color: #d93025; margin-top: 5px; margin-bottom: 5px; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        .btn-save { flex: 2; padding: 15px; background-color: #0056b3; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { flex: 1; padding: 15px; background-color: #6c757d; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        
+        .btn-save:hover { background-color: #004494; }
+        .btn-cancel:hover { background-color: #5a6268; }
+    </style>
+</head>
+<body>
+
+<div class="edit-container">
+    <div class="header-title">🧑‍🏫 내 정보 수정</div>
+    
+    <div class="input-group">
+        <label>이름 (수정불가)</label>
+        <input type="text" id="name" readonly>
+    </div>
+
+    <div class="input-group">
+        <label>이메일 (아이디 / 수정불가)</label>
+        <input type="text" id="email" readonly>
+    </div>
+
+    <div class="input-group">
+        <label>전화번호 (수정불가)</label>
+        <input type="text" id="phone" readonly>
+    </div>
+
+    <div class="input-group">
+        <label>📍 활동지역 (수정가능)</label>
+        <input type="text" id="region" placeholder="예: 서울 강남구">
+    </div>
+
+    <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #ddd;">
+
+    <div class="input-group">
+        <label>🔒 새 비밀번호 (변경시에만 입력)</label>
+        <input type="password" id="newPassword" placeholder="변경할 비밀번호 (6자리 이상)">
+        <p class="pw-guide">※ 비밀번호를 변경하지 않으려면 비워두세요.</p>
+    </div>
+
+    <div class="input-group">
+        <label>🔒 새 비밀번호 확인</label>
+        <input type="password" id="newPasswordConfirm" placeholder="비밀번호 재입력">
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-cancel" onclick="history.back()">취소</button>
+        <button class="btn-save" id="saveBtn">저장하기</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw",
+        authDomain: "edumaker-teacher-d97ba.firebaseapp.com",
+        projectId: "edumaker-teacher-d97ba",
+        storageBucket: "edumaker-teacher-d97ba.firebasestorage.app",
+        messagingSenderId: "532708143359",
+        appId: "1:532708143359:web:89b9933da4c868127ddcca",
+        measurementId: "G-JJ1TF77VBJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+
+    // 1. 로그인 상태 확인 및 정보 로드
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            try {
+                // Firestore에서 사용자 상세 정보 가져오기
+                const docSnap = await getDoc(doc(db, "users", user.uid));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('name').value = data.name || '';
+                    document.getElementById('email').value = data.email || user.email;
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('region').value = data.region || '';
+                }
+            } catch (e) {
+                alert("정보를 불러오는 중 오류가 발생했습니다.");
+            }
+        } else {
+            alert("로그인이 필요합니다.");
+            location.href = "index.html";
+        }
+    });
+
+    // 2. 저장 버튼 클릭 시
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+        if (!currentUser) return;
+
+        const newRegion = document.getElementById('region').value.trim();
+        const newPw = document.getElementById('newPassword').value;
+        const newPwConfirm = document.getElementById('newPasswordConfirm').value;
+
+        if (!newRegion) {
+            alert("활동지역을 입력해주세요.");
+            return;
+        }
+
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerText = "저장 중...";
+
+        try {
+            // A. Firestore 활동지역 업데이트
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                region: newRegion
+            });
+
+            // B. 비밀번호 변경 로직 (입력값이 있을 때만 수행)
+            if (newPw) {
+                if (newPw.length < 6) {
+                    alert("비밀번호는 6자리 이상이어야 합니다.");
+                    btn.disabled = false; btn.innerText = "저장하기";
+                    return;
+                }
+                if (newPw !== newPwConfirm) {
+                    alert("비밀번호 확인이 일치하지 않습니다.");
+                    btn.disabled = false; btn.innerText = "저장하기";
+                    return;
+                }
+
+                // Firebase Auth 비밀번호 업데이트
+                await updatePassword(currentUser, newPw);
+                alert("정보 수정 및 비밀번호 변경이 완료되었습니다.\n다시 로그인해주세요.");
+                location.href = "index.html"; // 비밀번호 변경 시 재로그인 유도
+                return;
+            }
+
+            alert("정보가 성공적으로 수정되었습니다.");
+            location.href = "teacher_main.html"; // 메인으로 복귀
+
+        } catch (error) {
+            console.error(error);
+            if (error.code === 'auth/requires-recent-login') {
+                alert("보안을 위해 다시 로그인한 후 비밀번호를 변경해주세요.");
+                location.href = "index.html";
+            } else {
+                alert("오류 발생: " + error.message);
+                btn.disabled = false; 
+                btn.innerText = "저장하기";
+            }
+        }
+    });
+</script>
+</body>
+</html>
