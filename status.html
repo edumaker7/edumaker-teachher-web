@@ -33,10 +33,10 @@
         .col-no { width: 45px; text-align: center; font-weight: bold; color: #666; }
         .col-date { width: 115px; text-align: center; }
         .col-user { width: 160px; text-align: center; }
-        .col-info { width: 190px; padding-left: 20px !important; } 
+        .col-info { width: 200px; padding-left: 20px !important; } 
         .col-pay { width: 105px; text-align: right; padding-right: 15px !important; }
         .col-total { width: 125px; text-align: right; padding-right: 15px !important; }
-        .col-note { width: 150px; }
+        .col-note { width: 170px; }
         .note-content { 
             font-size: 11px; color: #666; line-height: 1.4; 
             max-height: 65px; overflow-y: auto; overflow-x: hidden; 
@@ -44,8 +44,7 @@
         }
         .col-confirm { width: 70px; text-align: center; }
         .col-chk { width: 130px; }
-        /* 🔥 [수정] 관리 열 너비 대폭 확대 (110px -> 140px) */
-        .col-manage { width: 140px; text-align: center; padding-right: 10px; }
+        .col-manage { width: 110px; text-align: center; padding-right: 4px; }
 
         .row-finished, .row-finished td { background-color: #fffde7 !important; }
 
@@ -104,17 +103,15 @@
         .chk-group label { display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
         .chk-group input { margin-right: 6px; transform: scale(1.05); }
 
-        /* 🔥 [수정] 버튼 그룹 스타일 개선 */
         .btn-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
         
         .btn-group button { 
             border: none; border-radius: 4px; cursor: pointer; 
-            font-size: 11px; font-weight: bold; padding: 7px 0; /* 패딩 증가 */
+            font-size: 11px; font-weight: bold; padding: 6px 0; 
             color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
         }
         
-        /* 반반 버튼: flex: 1로 남은 공간 꽉 채우기 */
-        .btn-half { flex: 1; min-width: 50px; }
+        .btn-half { flex: 1; min-width: 40px; }
         .btn-full { width: 100%; margin-top: 2px; }
         
         .btn-finish { background-color: #555e67; }
@@ -140,6 +137,14 @@
         <div class="filter-item"><strong>🔍 강사 :</strong><select id="teacherFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
         <div class="filter-item"><strong>🏫 강의처 :</strong><select id="clientFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
         <div class="filter-item"><strong>🏛️ 의뢰처 :</strong><select id="requestClientFilter" onchange="filterAssignments()"><option value="all">전체</option></select></div>
+        
+        <div class="filter-item"><strong>✅ 확인 :</strong>
+            <select id="confirmFilter" onchange="filterAssignments()">
+                <option value="all">전체</option>
+                <option value="confirmed">확인완료</option>
+                <option value="pending">확인대기</option>
+            </select>
+        </div>
         
         <div class="filter-item" style="margin-left:auto; display:flex; align-items:center; gap:5px;">
             <strong>📅 기간 :</strong>
@@ -325,6 +330,9 @@
         const t = document.getElementById('teacherFilter').value;
         const c = document.getElementById('clientFilter').value;
         const r = document.getElementById('requestClientFilter').value; 
+        // 🔥 확인여부 필터 값 가져오기
+        const s = document.getElementById('confirmFilter').value; 
+        
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
@@ -333,6 +341,12 @@
             if (t !== "all" && data.teacherName !== t) return false;
             if (c !== "all" && data.client !== c) return false;
             if (r !== "all" && data.requestClient !== r) return false;
+            
+            // 🔥 확인 여부 필터링 로직
+            const isConfirmed = data.status === '확인완료';
+            if (s === "confirmed" && !isConfirmed) return false;
+            if (s === "pending" && isConfirmed) return false;
+
             if (startDate && endDate) {
                 const dates = (data.date || "").split(', ');
                 const isWithinRange = dates.some(d => d >= startDate && d <= endDate);
@@ -347,7 +361,8 @@
     window.resetFilters = () => {
         document.getElementById('teacherFilter').value = 'all';
         document.getElementById('clientFilter').value = 'all';
-        document.getElementById('requestClientFilter').value = 'all'; 
+        document.getElementById('requestClientFilter').value = 'all';
+        document.getElementById('confirmFilter').value = 'all'; // 🔥 초기화 추가
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
         window.filterAssignments();
