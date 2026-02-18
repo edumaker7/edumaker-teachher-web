@@ -17,10 +17,10 @@
         .filter-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
         .filter-bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 13px; background-color: white; }
         
-        /* 🔥 [추가] 날짜 입력창 스타일 */
+        /* 날짜 입력창 스타일 */
         .filter-bar input[type="date"] { padding: 7px 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 13px; font-family: inherit; }
         
-        /* 🔥 [추가] 조회 및 초기화 버튼 스타일 */
+        /* 조회 및 초기화 버튼 스타일 */
         .btn-search { background-color: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .btn-search:hover { background-color: #004494; }
         .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
@@ -85,6 +85,10 @@
         .text-main { font-weight: 600; color: #333; }
         .text-sub { font-size: 11.5px; color: #666; }
         .text-green { color: #28a745; font-size: 11px; font-weight: 600; }
+        
+        /* 🔥 [추가] 서비스 이용료 파란색 강조 스타일 */
+        .text-blue { color: #0056b3; font-weight: 700; font-size: 13px; }
+        
         .text-red { color: #d93025; font-weight: 700; font-size: 14px; }
 
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
@@ -223,7 +227,7 @@
                         <span class="text-line text-green">${data.additionalCost > 0 ? '+' + Number(data.additionalCost).toLocaleString() : ''}</span>
                     </td>
                     <td class="col-total">
-                        <span class="text-line">${serviceFee.toLocaleString()}원</span>
+                        <span class="text-line text-blue">${serviceFee.toLocaleString()}원</span>
                         <span class="text-line text-sub">(${data.commissionRate}%)</span>
                         <span class="text-line text-red">${totalPay.toLocaleString()}원</span>
                     </td>
@@ -323,7 +327,6 @@
         renderList(filtered);
     }
 
-    // 🔥 [추가] 필터 초기화 함수
     window.resetFilters = () => {
         document.getElementById('teacherFilter').value = 'all';
         document.getElementById('clientFilter').value = 'all';
