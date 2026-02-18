@@ -7,6 +7,11 @@
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f0f4f8; padding: 40px; margin: 0; }
         
+        /* 모바일용 패딩 조정 */
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+        }
+
         .list-container { max-width: 1650px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -24,27 +29,37 @@
         .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .btn-reset:hover { background-color: #5a6268; }
 
+        /* 🔥 [반응형 핵심] 표가 화면보다 크면 가로 스크롤 생성 */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #eee; }
+        /* 🔥 최소 너비 설정으로 모바일에서도 표 모양 유지 (스크롤됨) */
         table { width: 100%; min-width: 1200px; border-collapse: collapse; table-layout: fixed; border-top: 2px solid #0056b3; }
         
         th, td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; font-size: 13px; vertical-align: middle; }
         th { background-color: #fafafa; color: #495057; font-weight: 700; font-size: 12px; line-height: 1.4; text-align: center; }
 
-        .col-no { width: 45px; text-align: center; font-weight: bold; color: #666; }
+        /* --- 컬럼 너비 조정 --- */
+        .col-no { width: 40px; text-align: center; font-weight: bold; color: #666; }
         .col-date { width: 115px; text-align: center; }
         .col-user { width: 160px; text-align: center; }
         .col-info { width: 200px; padding-left: 20px !important; } 
         .col-pay { width: 105px; text-align: right; padding-right: 15px !important; }
         .col-total { width: 125px; text-align: right; padding-right: 15px !important; }
-        .col-note { width: 170px; }
+        
+        /* 비고란 (공간 확보) */
+        .col-note { width: 145px; }
+        
         .note-content { 
             font-size: 11px; color: #666; line-height: 1.4; 
             max-height: 65px; overflow-y: auto; overflow-x: hidden; 
             word-break: break-all; white-space: normal; padding-right: 5px;
         }
         .col-confirm { width: 70px; text-align: center; }
-        .col-chk { width: 130px; }
-        .col-manage { width: 110px; text-align: center; padding-right: 4px; }
+        
+        /* 정산처리란 */
+        .col-chk { width: 115px; }
+        
+        /* 관리란 (버튼 공간 최적화) */
+        .col-manage { width: 115px; text-align: center; padding-right: 2px; }
 
         .row-finished, .row-finished td { background-color: #fffde7 !important; }
 
@@ -68,8 +83,8 @@
         
         .sum-divider { width: 1px; height: 18px; background-color: #cbd5e1; }
 
+        /* 모바일 반응형 미디어 쿼리 */
         @media (max-width: 768px) {
-            body { padding: 15px; }
             .list-container { padding: 15px; }
             .summary-bar { flex-direction: column; align-items: flex-start; gap: 15px; padding: 20px; }
             .sum-item { width: 100%; justify-content: space-between; }
@@ -80,11 +95,8 @@
         }
 
         .text-line { 
-            display: block; 
-            margin-bottom: 3px; 
-            line-height: 1.4; 
-            white-space: normal; 
-            word-break: keep-all; 
+            display: block; margin-bottom: 3px; line-height: 1.4; 
+            white-space: normal; word-break: keep-all; 
         }
         
         .text-main { font-weight: 600; color: #333; }
@@ -107,7 +119,7 @@
         
         .btn-group button { 
             border: none; border-radius: 4px; cursor: pointer; 
-            font-size: 11px; font-weight: bold; padding: 6px 0; 
+            font-size: 11px; font-weight: bold; padding: 6px 0; /* 버튼 높이 축소 */
             color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
         }
         
@@ -330,7 +342,6 @@
         const t = document.getElementById('teacherFilter').value;
         const c = document.getElementById('clientFilter').value;
         const r = document.getElementById('requestClientFilter').value; 
-        // 🔥 확인여부 필터 값 가져오기
         const s = document.getElementById('confirmFilter').value; 
         
         const startDate = document.getElementById('startDate').value;
@@ -342,7 +353,6 @@
             if (c !== "all" && data.client !== c) return false;
             if (r !== "all" && data.requestClient !== r) return false;
             
-            // 🔥 확인 여부 필터링 로직
             const isConfirmed = data.status === '확인완료';
             if (s === "confirmed" && !isConfirmed) return false;
             if (s === "pending" && isConfirmed) return false;
@@ -362,7 +372,7 @@
         document.getElementById('teacherFilter').value = 'all';
         document.getElementById('clientFilter').value = 'all';
         document.getElementById('requestClientFilter').value = 'all';
-        document.getElementById('confirmFilter').value = 'all'; // 🔥 초기화 추가
+        document.getElementById('confirmFilter').value = 'all'; 
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
         window.filterAssignments();
