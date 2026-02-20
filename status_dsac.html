@@ -48,7 +48,7 @@
         .col-chk { width: 135px; }
         .col-manage { width: 140px; text-align: center; }
 
-        /* ✅ 배경색 로직: 노란색(완료)이 보라색(수업종료)보다 우선 적용 */
+        /* ✅ 배경색 로직: 노란색(완료)이 보라색(수업종료)보다 우선 */
         .row-class-finished, .row-class-finished td { background-color: #f3e5f5 !important; } 
         .row-finished, .row-finished td { background-color: #fffde7 !important; }
 
@@ -74,7 +74,7 @@
         .btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .btn-group button { border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; padding: 6px 0; color: white; width: 48%; }
         
-        /* ✅ 완료(초록), 복구(회색) 색상 차별화 */
+        /* ✅ 버튼 색상: 완료(초록), 복구(회색) */
         .btn-finish { background-color: #28a745 !important; } 
         .btn-restore { background-color: #555e67 !important; } 
         
@@ -149,6 +149,7 @@
     const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     let allAssignments = [];
+    let isInitialLoad = true;
 
     function initScrollSync() {
         const tableContainer = document.getElementById('main-table-container');
@@ -187,7 +188,7 @@
 
             let schHtml = "";
             (data.date || "").split(', ').forEach((d, i) => {
-                schHtml += `<div style="margin-bottom:3px;"><b style="color:#333;">${d}${getDayOfWeek(d)}</b><br><span style="color:#0056b3; font-size:11px;">${(data.time||"").split(', ')[i]||''}</span></div>`;
+                schHtml += `<div style="margin-bottom:3px;"><b>${d}${getDayOfWeek(d)}</b><br><span style="color:#0056b3; font-size:11px;">${(data.time||"").split(', ')[i]||''}</span></div>`;
             });
 
             const req = (data.requestClient || "").trim();
@@ -237,17 +238,22 @@
             return dateB.localeCompare(dateA);
         });
         allAssignments = rawData.map((item, index) => ({ ...item, virtualNo: rawData.length - index }));
-        const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
-        allAssignments.forEach(i => { 
-            if(i.data.teacherName) tSet.add(i.data.teacherName); 
-            if(i.data.client) cSet.add(i.data.client);
-            if(i.data.requestClient) rSet.add(i.data.requestClient); 
-            if(i.data.role) roleSet.add(i.data.role);
-        });
-        document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
-        document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
-        document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+        
+        if (isInitialLoad) {
+            const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
+            allAssignments.forEach(i => { 
+                if(i.data.teacherName) tSet.add(i.data.teacherName); 
+                if(i.data.client) cSet.add(i.data.client);
+                if(i.data.requestClient) rSet.add(i.data.requestClient); 
+                if(i.data.role) roleSet.add(i.data.role);
+            });
+            document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
+            document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+            isInitialLoad = false;
+        }
+        // ✅ 실시간 데이터 갱신 시 현재 필터값 유지
         filterAssignments(); 
     });
 

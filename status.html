@@ -73,9 +73,8 @@
         .btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .btn-group button { border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; padding: 6px 0; color: white; width: 48%; }
         
-        /* ✅ 완료(초록), 복구(회색) 색상 교체 완료 */
-        .btn-finish { background-color: #28a745 !important; } /* 완료 버튼 에메랄드 그린 */
-        .btn-restore { background-color: #555e67 !important; } /* 복구 버튼 진한 회색 */
+        .btn-finish { background-color: #28a745 !important; } 
+        .btn-restore { background-color: #555e67 !important; } 
         
         .btn-delete { background-color: #ff4d4f; width: calc(96% + 4px) !important; margin-top: 2px; }
 
@@ -148,6 +147,7 @@
     const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     let allAssignments = [];
+    let isInitialLoad = true; // ✅ 초기 로딩 상태 구분용
 
     function initScrollSync() {
         const tableContainer = document.getElementById('main-table-container');
@@ -234,17 +234,23 @@
         });
         allAssignments = rawData.map((item, index) => ({ ...item, virtualNo: rawData.length - index }));
         
-        const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
-        allAssignments.forEach(i => { 
-            if(i.data.teacherName) tSet.add(i.data.teacherName); 
-            if(i.data.client) cSet.add(i.data.client);
-            if(i.data.requestClient) rSet.add(i.data.requestClient); 
-            if(i.data.role) roleSet.add(i.data.role);
-        });
-        document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
-        document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
-        document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+        // ✅ 셀렉트박스 옵션 설정 (초기 1회 혹은 데이터 구조 변경 시만 실행)
+        if (isInitialLoad) {
+            const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
+            allAssignments.forEach(i => { 
+                if(i.data.teacherName) tSet.add(i.data.teacherName); 
+                if(i.data.client) cSet.add(i.data.client);
+                if(i.data.requestClient) rSet.add(i.data.requestClient); 
+                if(i.data.role) roleSet.add(i.data.role);
+            });
+            document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
+            document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+            isInitialLoad = false;
+        }
+
+        // ✅ 데이터가 업데이트되면 '선택된 필터 상태'를 기반으로 리스트를 다시 필터링함 (필터 유지 핵심)
         filterAssignments(); 
     });
 
@@ -257,6 +263,7 @@
         const servicePaid = document.getElementById('servicePaidFilter').value;
         const start = document.getElementById('startDate').value;
         const end = document.getElementById('endDate').value;
+
         const filtered = allAssignments.filter(item => {
             const data = item.data;
             if (t !== "all" && data.teacherName !== t) return false;
@@ -267,7 +274,10 @@
             if (s === "pending" && data.status === '확인완료') return false;
             if (servicePaid === "paid" && !data.isPaidService) return false;
             if (servicePaid === "unpaid" && data.isPaidService) return false;
-            if (start && end) { const dates = (data.date || "").split(', '); if (!dates.some(d => d >= start && d <= end)) return false; }
+            if (start && end) {
+                const dates = (data.date || "").split(', ');
+                if (!dates.some(d => d >= start && d <= end)) return false;
+            }
             return true;
         });
         renderList(filtered);

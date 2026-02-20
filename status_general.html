@@ -48,9 +48,8 @@
         .col-chk { width: 135px; }
         .col-manage { width: 140px; text-align: center; }
 
-        /* ✅ 배경색 스타일: 노란색(완료)이 보라색(수업종료)보다 아래에 있어 우선 적용됨 */
-        .row-class-finished, .row-class-finished td { background-color: #f3e5f5 !important; } /* 파스텔 보라 */
-        .row-finished, .row-finished td { background-color: #fffde7 !important; } /* 파스텔 노랑 */
+        .row-class-finished, .row-class-finished td { background-color: #f3e5f5 !important; }
+        .row-finished, .row-finished td { background-color: #fffde7 !important; }
 
         .summary-bar { margin-top: 20px; background-color: #e3f2fd; border: 2px solid #0056b3; border-radius: 12px; padding: 20px 30px; display: flex; justify-content: flex-end; align-items: center; gap: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .sum-value { font-size: 18px; font-weight: 800; color: #0056b3; }
@@ -74,7 +73,6 @@
         .btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .btn-group button { border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; padding: 6px 0; color: white; width: 48%; }
         
-        /* ✅ 완료(초록), 복구(회색) 색상 적용 */
         .btn-finish { background-color: #28a745 !important; } 
         .btn-restore { background-color: #555e67 !important; } 
         
@@ -147,14 +145,15 @@
     const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     let allAssignments = [];
+    let isInitialLoad = true; // ✅ 셀렉트박스 유지용 변수
 
     function initScrollSync() {
         const tableContainer = document.getElementById('main-table-container');
-        const actualTable = document.getElementById('actual-data-table');
+        const realTable = document.getElementById('actual-data-table');
         const fakeContainer = document.getElementById('fake-scroll-container');
         const fakeContent = document.getElementById('fake-scroll-content');
-        if(!tableContainer || !actualTable || !fakeContainer) return;
-        fakeContent.style.width = (actualTable.scrollWidth + 100) + 'px';
+        if(!tableContainer || !realTable || !fakeContainer) return;
+        fakeContent.style.width = (realTable.scrollWidth + 100) + 'px';
         fakeContainer.onscroll = () => { tableContainer.scrollLeft = fakeContainer.scrollLeft; };
         tableContainer.onscroll = () => { fakeContainer.scrollLeft = tableContainer.scrollLeft; };
     }
@@ -185,14 +184,13 @@
 
             let schHtml = "";
             (data.date || "").split(', ').forEach((d, i) => {
-                schHtml += `<div style="margin-bottom:3px;"><b>${d}${getDayOfWeek(d)}</b><br><span style="color:#0056b3; font-size:11px;">${(data.time||"").split(', ')[i]||''}</span></div>`;
+                schHtml += `<div style="margin-bottom:3px;"><b style="color:#333;">${d}${getDayOfWeek(d)}</b><br><span style="color:#0056b3; font-size:11px;">${(data.time||"").split(', ')[i]||''}</span></div>`;
             });
 
             const req = (data.requestClient || "").trim();
             const lecCheckHtml = (req === "에듀메이커") ? `<label><input type="checkbox" ${data.isPaidTeacher ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidTeacher', this.checked)"> 강사료완료</label>` : `<span style="color:#aaa; font-size:11px;">(의뢰처 지급)</span>`;
             const serCheckHtml = Number(data.commissionRate || 0) > 0 ? `<label><input type="checkbox" ${data.isPaidService ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidService', this.checked)"> 이용료확인</label>` : `<span style="color:#aaa; font-size:11px;">(이용료 없음)</span>`;
 
-            // ✅ 배경색 로직 적용
             let rowClass = "";
             if (isFinished) rowClass = "row-finished";
             else if (isClassFinished) rowClass = "row-class-finished";
@@ -200,7 +198,7 @@
             html += `<tr class="${rowClass}">
                 <td class="col-no">${item.virtualNo}</td>
                 <td class="col-date">${schHtml}</td>
-                <td class="col-user"><b>${data.teacherName}</b><br><span style="font-size:11.5px; color:#666;">${data.teacherEmail}</span><br><span style="font-size:11px; color:#6741d9;">${data.requestClient || '-'}</span></td>
+                <td class="col-user"><span style="font-weight:600; color:#333;">${data.teacherName}</span><br><span style="font-size:11.5px; color:#666;">${data.teacherEmail}</span><br><span style="font-size:11px; color:#6741d9;">${data.requestClient || '-'}</span></td>
                 <td class="col-info">
                     <div style="font-weight:bold; color:#333; margin-bottom:4px;">${data.client}</div>
                     <div style="font-size:12.5px; color:#555; margin-bottom:4px; line-height:1.4;">${data.subject}</div>
@@ -236,17 +234,23 @@
             return dateB.localeCompare(dateA);
         });
         allAssignments = rawData.map((item, index) => ({ ...item, virtualNo: rawData.length - index }));
-        const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
-        allAssignments.forEach(i => { 
-            if(i.data.teacherName) tSet.add(i.data.teacherName); 
-            if(i.data.client) cSet.add(i.data.client);
-            if(i.data.requestClient) rSet.add(i.data.requestClient); 
-            if(i.data.role) roleSet.add(i.data.role);
-        });
-        document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
-        document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
-        document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+        
+        if (isInitialLoad) {
+            const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
+            allAssignments.forEach(i => { 
+                if(i.data.teacherName) tSet.add(i.data.teacherName); 
+                if(i.data.client) cSet.add(i.data.client);
+                if(i.data.requestClient) rSet.add(i.data.requestClient); 
+                if(i.data.role) roleSet.add(i.data.role);
+            });
+            document.getElementById('teacherFilter').innerHTML = `<option value="all">전체 강사</option>` + Array.from(tSet).sort().map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('clientFilter').innerHTML = `<option value="all">전체 강의처</option>` + Array.from(cSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('requestClientFilter').innerHTML = `<option value="all">전체 의뢰처</option>` + Array.from(rSet).sort().map(r => `<option value="${r}">${r}</option>`).join('');
+            document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
+            isInitialLoad = false;
+        }
+
+        // ✅ 데이터 변경 시 필터링 함수를 재호출하여 현재 필터 유지
         filterAssignments(); 
     });
 
@@ -269,11 +273,12 @@
             if (s === "pending" && data.status === '확인완료') return false;
             if (servicePaid === "paid" && !data.isPaidService) return false;
             if (servicePaid === "unpaid" && data.isPaidService) return false;
-            if (start && end) { const dates = (data.date || "").split(', '); if (!dates.some(dt => dt >= start && dt <= end)) return false; }
+            if (start && end) { const dates = (data.date || "").split(', '); if (!dates.some(d => d >= start && d <= end)) return false; }
             return true;
         });
         renderList(filtered);
     }
+
     window.resetFilters = () => { 
         document.querySelectorAll('.filter-bar select').forEach(s => s.value = 'all');
         document.querySelectorAll('.filter-bar input').forEach(i => i.value = '');
