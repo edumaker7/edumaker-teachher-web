@@ -178,7 +178,6 @@
                 });
                 schHtml += `</div>`;
 
-                // 🔥 [수정] 강사료 상태박스 로직 변경
                 const requestClientName = (data.requestClient || "").trim();
                 const lectureStatusBox = (requestClientName === "에듀메이커")
                     ? `<div class="status-box ${data.isPaidTeacher?'status-complete':'status-waiting'}">강사료 ${data.isPaidTeacher?'완료':'대기'}</div>`

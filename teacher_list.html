@@ -12,7 +12,6 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .logo { font-size: 24px; font-weight: 800; color: #0056b3; cursor: pointer; text-decoration: none; }
         
-        /* 🔥 [수정] 버튼 그룹 스타일 */
         .header-btn-group { display: flex; gap: 10px; }
         
         .btn-header { 
@@ -20,11 +19,9 @@
             text-decoration: none; color: white; transition: background 0.2s; border: none; cursor: pointer;
         }
         
-        /* 강사배정현황 버튼 (청록색) */
         .btn-status { background-color: #17a2b8; }
         .btn-status:hover { background-color: #138496; }
         
-        /* 강의 배정 페이지로 버튼 (파란색) */
         .btn-back { background-color: #0056b3; }
         .btn-back:hover { background-color: #004494; }
 
@@ -49,7 +46,6 @@
         }
         .btn-delete:hover { background-color: #ff4d4f; color: white; }
 
-        /* 모바일 패딩 조정 */
         @media (max-width: 600px) {
             body { padding: 20px; }
             .container { padding: 20px; }
@@ -111,7 +107,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 날짜 변환 함수
     function formatDate(timestamp) {
         if (!timestamp) return "-";
         try {
@@ -122,13 +117,11 @@
 
     const teacherTableBody = document.getElementById('teacherTableBody');
 
-    // 강사 목록 불러오기 (가입일 내림차순)
     const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
 
     onSnapshot(q, (snapshot) => {
         teacherTableBody.innerHTML = '';
 
-        // 1. 데이터를 배열로 변환하면서 관리자 계정 필터링
         const teachers = [];
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -142,8 +135,6 @@
             return;
         }
 
-        // 2. 🔥 [수정] 역순 번호 부여 로직
-        // 전체 인원수에서 현재 인덱스를 뺌 (예: 10명일 때 첫번째 사람은 10, 두번째는 9...)
         teachers.forEach((data, index) => {
             const virtualNo = teachers.length - index;
 

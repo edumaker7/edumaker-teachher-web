@@ -21,7 +21,6 @@
         }
         .btn-signup:hover { background-color: #004494; }
         
-        /* 🔥 [추가] 버튼 비활성화 시 스타일 (회색 처리) */
         .btn-signup:disabled {
             background-color: #a0a0a0;
             cursor: not-allowed;
@@ -152,15 +151,14 @@
         return re.test(String(email).toLowerCase());
     }
 
-    // 🔥 [추가] 버튼 로딩 상태 제어 함수
     function setButtonLoading(isLoading) {
         const btn = document.getElementById('signupBtn');
         if (isLoading) {
-            btn.disabled = true; // 버튼 비활성화 (중복 클릭 방지)
-            btn.innerText = "가입 처리 중... ⏳"; // 텍스트 변경
+            btn.disabled = true; 
+            btn.innerText = "가입 처리 중... ⏳"; 
         } else {
-            btn.disabled = false; // 버튼 다시 활성화
-            btn.innerText = "회원가입 완료"; // 텍스트 복구
+            btn.disabled = false; 
+            btn.innerText = "회원가입 완료"; 
         }
     }
 
@@ -173,7 +171,6 @@
         const region = document.getElementById('region').value;
         const privacyCheck = document.getElementById('privacyCheck').checked;
 
-        // 1. 유효성 검사 (여기서는 아직 로딩 안 걺)
         if(!email || !pw || !name || !phone || !region || !privacyCheck) {
             alert("모든 필수 항목을 입력하고 동의해 주세요.");
             return;
@@ -186,25 +183,22 @@
 
         if(pw !== pwConfirm) {
             alert("비밀번호가 일치하지 않습니다.");
-            return; // 🛑 return이 있어 여기서 멈춤
+            return; 
         }
 
-        // 2. 모든 검사 통과 -> 로딩 시작!
         setButtonLoading(true);
 
         try {
-            // 전화번호 중복 체크
             const q = query(collection(db, "users"), where("phone", "==", phone));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
                 alert("이미 가입된 휴대폰 번호입니다.\n[로그인] 하시거나 [아이디 찾기]를 이용해 주세요.");
                 clearForm();
-                setButtonLoading(false); // 🛑 실패 시 버튼 복구
+                setButtonLoading(false);
                 return;
             }
 
-            // Firebase 가입 & DB 저장 & 메일 발송
             const userCredential = await createUserWithEmailAndPassword(auth, email, pw);
             const user = userCredential.user;
 
@@ -229,7 +223,6 @@
             window.location.href = "index.html";
 
         } catch (error) {
-            // 🛑 에러 발생 시 버튼 복구
             setButtonLoading(false);
 
             if(error.code === 'auth/email-already-in-use') {

@@ -24,33 +24,23 @@
         .date-search-group { margin-left: auto; display: flex; align-items: center; gap: 5px; }
         .btn-search { background-color: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; margin-right: 8px; }
         .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; margin-right: 5px; }
-        
-        /* ✅ 엑셀 다운로드 버튼 디자인 */
         .btn-excel { background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
-        .btn-excel:hover { background-color: #218838; }
-
-        .table-responsive { 
-            width: 100%; 
-            overflow-x: auto; 
-            border-bottom: 1px solid #eee; 
-            position: relative;
-            -ms-overflow-style: none; scrollbar-width: none; 
-        }
+        
+        .table-responsive { width: 100%; overflow-x: auto; border-bottom: 1px solid #eee; position: relative; -ms-overflow-style: none; scrollbar-width: none; }
         .table-responsive::-webkit-scrollbar { display: none; }
 
-        table { width: 100%; min-width: 1550px; border-collapse: collapse; table-layout: fixed; border-top: 2px solid #343a40; }
+        table { width: 100%; min-width: 1100px; border-collapse: collapse; table-layout: fixed; border-top: 2px solid #343a40; }
         th, td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; font-size: 13px; vertical-align: middle; }
         th { background-color: #fafafa; color: #495057; font-weight: 700; font-size: 12px; text-align: center; }
         
-        .col-no { width: 45px; text-align: center; }
-        .col-date { width: 140px; text-align: center; }
-        .col-user { width: 170px; text-align: center; }
-        .col-info { width: 230px; } 
-        .col-pay { width: 110px; text-align: right; }
-        .col-total { width: 130px; text-align: right; }
-        .col-note { width: 155px; }
-        .col-confirm { width: 75px; text-align: center; }
-        .col-chk { width: 135px; }
+        .col-no { width: 30px; text-align: center; }
+        .col-date { width: 90px; text-align: center; }
+        .col-user { width: 110px; text-align: center; }
+        .col-info { width: 200px; } 
+        .col-pay { width: 50px; text-align: right; }
+        .col-total { width: 80px; text-align: right; }
+        .col-note { width: 150px; text-align: center; }
+        .col-chk { width: 80px; text-align: center; }
         .col-manage { width: 140px; text-align: center; }
 
         .row-class-finished, .row-class-finished td { background-color: #f3e5f5 !important; }
@@ -59,32 +49,32 @@
         .summary-bar { margin-top: 20px; background-color: #f8f9fa; border: 2px solid #343a40; border-radius: 12px; padding: 20px 30px; display: flex; justify-content: flex-end; align-items: center; gap: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .sum-value { font-size: 18px; font-weight: 800; color: #343a40; }
 
-        #fake-scroll-container {
-            overflow-x: auto; overflow-y: hidden;
-            position: fixed; bottom: 0; left: 0;
-            width: 100%; z-index: 9999;
-            background: #f8f9fa; border-top: 1px solid #dee2e6;
-            height: 18px;
-        }
+        #fake-scroll-container { overflow-x: auto; overflow-y: hidden; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 9999; background: #f8f9fa; border-top: 1px solid #dee2e6; height: 18px; }
         #fake-scroll-content { height: 1px; }
 
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
-        .status-wait { background: #fff3cd; color: #856404; }
-        .status-ok { background: #d4edda; color: #155724; }
-        .chk-group { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; }
-        .chk-group label { display: flex; align-items: center; cursor: pointer; }
-        .btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-        .btn-group button { border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; padding: 6px 0; color: white; width: 48%; }
+        .btn-group { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+        .btn-group button { 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            font-weight: bold; 
+            padding: 5px 0; 
+            color: white; 
+            width: 45%; 
+        }
         
         .btn-finish { background-color: #28a745 !important; } 
         .btn-restore { background-color: #555e67 !important; } 
-        .btn-delete { background-color: #ff4d4f; width: calc(96% + 4px) !important; margin-top: 2px; }
+        .btn-confirm-wait { background:#ffeeba; color:#856404 !important; border:1px solid #ffeeba !important; }
+        .btn-confirm-ok { background:#d4edda; color:#155724 !important; border:1px solid #c3e6cb !important; }
+        .btn-edit { background-color: #0056b3; }
+        .btn-delete { background-color: #ff4d4f; }
 
-        @media (max-width: 768px) {
-            #fake-scroll-container { display: none; }
-            .table-responsive { scrollbar-width: auto; -ms-overflow-style: auto; }
-            .table-responsive::-webkit-scrollbar { display: block; }
-        }
+        .chk-group { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; align-items: center; } /* 가운데 정렬용 align-items 추가 */
+        .chk-group label { display: flex; align-items: center; cursor: pointer; justify-content: center; width: 100%; }
+
+        @media (max-width: 768px) { #fake-scroll-container { display: none; } .table-responsive { scrollbar-width: auto; -ms-overflow-style: auto; } .table-responsive::-webkit-scrollbar { display: block; } }
     </style>
 </head>
 <body>
@@ -128,16 +118,15 @@
                     <th class="col-date">교육일자/시간</th>
                     <th class="col-user">이름/이메일/의뢰처</th>
                     <th class="col-info">강의처 / 강좌명 / 역할</th>
-                    <th class="col-pay">시간 / 시급</th>
-                    <th class="col-total">서비스 / 합계</th>
+                    <th class="col-pay">시간/시급</th>
+                    <th class="col-total">서비스/합계</th>
                     <th class="col-note">비고</th>
-                    <th class="col-confirm">확인</th>
                     <th class="col-chk">정산 처리</th>
                     <th class="col-manage">관리</th>
                 </tr>
             </thead>
             <tbody id="admin-list-body">
-                <tr><td colspan="10" style="text-align:center; padding:40px;">데이터를 불러오는 중...</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:40px;">데이터를 불러오는 중...</td></tr>
             </tbody>
         </table>
     </div>
@@ -169,43 +158,16 @@
         tableContainer.onscroll = () => { fakeContainer.scrollLeft = tableContainer.scrollLeft; };
     }
 
-    // ✅ 진짜 엑셀(.xlsx) 파일 다운로드 함수
     window.downloadExcel = function() {
-        if (currentlyShownData.length === 0) {
-            alert("다운로드할 데이터가 없습니다.");
-            return;
-        }
-
-        // 엑셀 데이터 배열 생성
+        if (currentlyShownData.length === 0) { alert("다운로드할 데이터가 없습니다."); return; }
         const excelData = currentlyShownData.map(item => {
             const d = item.data;
-            const totalPay = (Number(d.classHours || 0) * Number(d.hourlyRate || 0)) + Number(d.additionalCost || 0);
-            return {
-                "번호": item.virtualNo,
-                "교육일자": d.date,
-                "강사명": d.teacherName,
-                "이메일": d.teacherEmail,
-                "의뢰처": d.requestClient || "-",
-                "강의처": d.client,
-                "강좌명": d.subject,
-                "역할": d.role || "강사",
-                "시간": d.classHours,
-                "시급": d.hourlyRate,
-                "서비스이용료": d.serviceFee || 0,
-                "합계(강사료포함)": totalPay,
-                "비고": d.note || "-",
-                "확인상태": d.status
-            };
+            return { "번호": item.virtualNo, "교육일자": d.date, "강사명": d.teacherName, "이메일": d.teacherEmail, "의뢰처": d.requestClient || "-", "강의처": d.client, "강좌명": d.subject, "역할": d.role || "강사", "시간": d.classHours, "시급": d.hourlyRate, "서비스이용료": d.serviceFee || 0, "합계(강사료포함)": (Number(d.classHours || 0) * Number(d.hourlyRate || 0)) + Number(d.additionalCost || 0), "비고": d.note || "-", "확인상태": d.status };
         });
-
-        // 엑셀 워크북 생성
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "배정현황");
-
-        // 파일 저장 (에듀메이커_배정현황_날짜.xlsx)
-        const dateStr = new Date().toISOString().slice(0,10);
-        XLSX.writeFile(workbook, `에듀메이커_배정현황_${dateStr}.xlsx`);
+        XLSX.writeFile(workbook, `에듀메이커_배정현황_${new Date().toISOString().slice(0,10)}.xlsx`);
     };
 
     function getDayOfWeek(dateStr) {
@@ -239,12 +201,13 @@
             });
 
             const req = (data.requestClient || "").trim();
-            const lecCheckHtml = (req === "에듀메이커") ? `<label><input type="checkbox" ${data.isPaidTeacher ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidTeacher', this.checked)"> 강사료완료</label>` : `<span style="color:#aaa; font-size:11px;">(의뢰처 지급)</span>`;
-            const serCheckHtml = Number(data.commissionRate || 0) > 0 ? `<label><input type="checkbox" ${data.isPaidService ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidService', this.checked)"> 이용료확인</label>` : `<span style="color:#aaa; font-size:11px;">(이용료 없음)</span>`;
+            const lecCheckHtml = (req === "에듀메이커") ? `<label><input type="checkbox" ${data.isPaidTeacher ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidTeacher', this.checked)"> 강사료완료</label>` : `<span style="color:#aaa; font-size:10px;">(의뢰처 지급)</span>`;
+            const serCheckHtml = Number(data.commissionRate || 0) > 0 ? `<label><input type="checkbox" ${data.isPaidService ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidService', this.checked)"> 이용료확인</label>` : `<span style="color:#aaa; font-size:10px;">(이용료 없음)</span>`;
 
-            let rowClass = "";
-            if (isFinished) rowClass = "row-finished";
-            else if (isClassFinished) rowClass = "row-class-finished";
+            let rowClass = isFinished ? "row-finished" : (isClassFinished ? "row-class-finished" : "");
+            const isConfirmed = data.status === '확인완료';
+            const confirmText = isConfirmed ? '확인됨' : '대기중';
+            const confirmClass = isConfirmed ? 'btn-confirm-ok' : 'btn-confirm-wait';
 
             html += `<tr class="${rowClass}">
                 <td class="col-no">${item.virtualNo}</td>
@@ -253,23 +216,23 @@
                 <td class="col-info">
                     <div style="font-weight:bold; color:#333; margin-bottom:4px;">${data.client}</div>
                     <div style="font-size:12.5px; color:#555; margin-bottom:4px; line-height:1.4;">${data.subject}</div>
-                    <div style="font-size:11.5px; color:#888;">역할: ${data.role || '강사'}</div>
+                    <div style="font-size:11.5px; color:#0056b3; font-weight:600;">역할: ${data.role || '강사'}</div>
                 </td>
-                <td class="col-pay">${data.classHours}시간<br><span style="font-size:11.5px; color:#666;">${Number(data.hourlyRate).toLocaleString()}원</span></td>
-                <td class="col-total"><span style="color:#0056b3;">${Number(data.serviceFee || 0).toLocaleString()}원</span><br><b>${totalPay.toLocaleString()}원</b></td>
+                <td class="col-pay">${data.classHours}h<br><span style="font-size:11.5px; color:#666;">${Number(data.hourlyRate).toLocaleString()}</span></td>
+                <td class="col-total"><span style="color:#0056b3;">${Number(data.serviceFee || 0).toLocaleString()}</span><br><b>${totalPay.toLocaleString()}</b></td>
                 <td class="col-note"><div style="font-size:11.5px; color:#666; max-height:60px; overflow-y:auto;">${(data.note || '-').replace(/\n/g, '<br>')}</div></td>
-                <td class="col-confirm"><span class="status-badge ${data.status === '확인완료' ? 'status-ok' : 'status-wait'}">${data.status === '확인완료' ? '완료' : '대기'}</span></td>
                 <td class="col-chk"><div class="chk-group">${lecCheckHtml}${serCheckHtml}<label><input type="checkbox" ${data.isClassFinished ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isClassFinished', this.checked)"> 수업종료</label></div></td>
                 <td class="col-manage">
                     <div class="btn-group">
+                        <button class="${confirmClass}" style="cursor:default;">${confirmText}</button>
                         <button class="${isFinished ? 'btn-restore' : 'btn-finish'}" onclick="toggleFinishStatus('${item.id}', ${isFinished})">${isFinished ? '복구' : '완료'}</button>
-                        <button style="background:#0056b3;" onclick="editAssignment('${item.id}')">수정</button>
+                        <button class="btn-edit" onclick="editAssignment('${item.id}')">수정</button>
                         <button class="btn-delete" onclick="deleteAssignment('${item.id}', '${data.subject}', '${data.teacherName}')">삭제</button>
                     </div>
                 </td>
             </tr>`;
         });
-        listBody.innerHTML = html || '<tr><td colspan="10" style="text-align:center; padding:40px;">배정 내역이 없습니다.</td></tr>';
+        listBody.innerHTML = html || '<tr><td colspan="9" style="text-align:center; padding:40px;">배정 내역이 없습니다.</td></tr>';
         summaryCon.innerHTML = `<div class="summary-bar"><span>총 ${dataList.length}건</span> | <span>이용료: ${sumS.toLocaleString()}원</span> | <span style="font-weight:bold; color:#d93025;">합계: ${sumG.toLocaleString()}원</span></div>`;
         setTimeout(initScrollSync, 200);
     }
@@ -282,7 +245,6 @@
             return dateB.localeCompare(dateA);
         });
         allAssignments = rawData.map((item, index) => ({ ...item, virtualNo: rawData.length - index }));
-        
         if (isInitialLoad) {
             const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
             allAssignments.forEach(i => { 
@@ -324,12 +286,7 @@
         });
         renderList(filtered);
     }
-
-    window.resetFilters = () => { 
-        document.querySelectorAll('.filter-bar select').forEach(s => s.value = 'all');
-        document.querySelectorAll('.filter-bar input').forEach(i => i.value = '');
-        filterAssignments(); 
-    }
+    window.resetFilters = () => { document.querySelectorAll('.filter-bar select').forEach(s => s.value = 'all'); document.querySelectorAll('.filter-bar input').forEach(i => i.value = ''); filterAssignments(); }
     window.addEventListener('resize', initScrollSync);
 </script>
 </body>
