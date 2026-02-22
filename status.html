@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>에듀메이커 - 전체 배정 현황</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f0f4f8; padding: 40px; margin: 0; padding-bottom: 100px; }
         .list-container { max-width: 1650px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
@@ -22,8 +23,12 @@
         
         .date-search-group { margin-left: auto; display: flex; align-items: center; gap: 5px; }
         .btn-search { background-color: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; margin-right: 8px; }
-        .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; margin-right: 5px; }
         
+        /* ✅ 엑셀 다운로드 버튼 디자인 */
+        .btn-excel { background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .btn-excel:hover { background-color: #218838; }
+
         .table-responsive { 
             width: 100%; 
             overflow-x: auto; 
@@ -66,16 +71,13 @@
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
         .status-wait { background: #fff3cd; color: #856404; }
         .status-ok { background: #d4edda; color: #155724; }
-        
         .chk-group { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; }
         .chk-group label { display: flex; align-items: center; cursor: pointer; }
-        
         .btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .btn-group button { border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; padding: 6px 0; color: white; width: 48%; }
         
         .btn-finish { background-color: #28a745 !important; } 
         .btn-restore { background-color: #555e67 !important; } 
-        
         .btn-delete { background-color: #ff4d4f; width: calc(96% + 4px) !important; margin-top: 2px; }
 
         @media (max-width: 768px) {
@@ -109,7 +111,13 @@
         <div class="filter-item"><strong>🎖️ 역할 :</strong><select id="roleFilter" onchange="filterAssignments()"></select></div>
         <div class="filter-item"><strong>🏷️ 이용료 :</strong><select id="servicePaidFilter" onchange="filterAssignments()"><option value="all">전체</option><option value="paid">입금완료</option><option value="unpaid">미입금</option></select></div>
         <div class="filter-item"><strong>✅ 확인 :</strong><select id="confirmFilter" onchange="filterAssignments()"><option value="all">전체</option><option value="confirmed">확인완료</option><option value="pending">확인대기</option></select></div>
-        <div class="date-search-group"><strong>📅 기간 :</strong><input type="date" id="startDate"> ~ <input type="date" id="endDate"><button class="btn-search" onclick="filterAssignments()">조회</button><button class="btn-reset" onclick="resetFilters()">초기화</button></div>
+        <div class="date-search-group">
+            <strong>📅 기간 :</strong>
+            <input type="date" id="startDate"> ~ <input type="date" id="endDate">
+            <button class="btn-search" onclick="filterAssignments()">조회</button>
+            <button class="btn-reset" onclick="resetFilters()">초기화</button>
+            <button class="btn-excel" onclick="downloadExcel()">📊 엑셀 다운로드</button>
+        </div>
     </div>
 
     <div class="table-responsive" id="main-table-container">
@@ -147,7 +155,8 @@
     const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     let allAssignments = [];
-    let isInitialLoad = true; // ✅ 초기 로딩 상태 구분용
+    let currentlyShownData = []; 
+    let isInitialLoad = true;
 
     function initScrollSync() {
         const tableContainer = document.getElementById('main-table-container');
@@ -159,6 +168,45 @@
         fakeContainer.onscroll = () => { tableContainer.scrollLeft = fakeContainer.scrollLeft; };
         tableContainer.onscroll = () => { fakeContainer.scrollLeft = tableContainer.scrollLeft; };
     }
+
+    // ✅ 진짜 엑셀(.xlsx) 파일 다운로드 함수
+    window.downloadExcel = function() {
+        if (currentlyShownData.length === 0) {
+            alert("다운로드할 데이터가 없습니다.");
+            return;
+        }
+
+        // 엑셀 데이터 배열 생성
+        const excelData = currentlyShownData.map(item => {
+            const d = item.data;
+            const totalPay = (Number(d.classHours || 0) * Number(d.hourlyRate || 0)) + Number(d.additionalCost || 0);
+            return {
+                "번호": item.virtualNo,
+                "교육일자": d.date,
+                "강사명": d.teacherName,
+                "이메일": d.teacherEmail,
+                "의뢰처": d.requestClient || "-",
+                "강의처": d.client,
+                "강좌명": d.subject,
+                "역할": d.role || "강사",
+                "시간": d.classHours,
+                "시급": d.hourlyRate,
+                "서비스이용료": d.serviceFee || 0,
+                "합계(강사료포함)": totalPay,
+                "비고": d.note || "-",
+                "확인상태": d.status
+            };
+        });
+
+        // 엑셀 워크북 생성
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "배정현황");
+
+        // 파일 저장 (에듀메이커_배정현황_날짜.xlsx)
+        const dateStr = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(workbook, `에듀메이커_배정현황_${dateStr}.xlsx`);
+    };
 
     function getDayOfWeek(dateStr) {
         const week = ['일', '월', '화', '수', '목', '금', '토'];
@@ -172,6 +220,7 @@
     window.deleteAssignment = async function(docId, subject, teacher) { if (!confirm(`[삭제 확인] ${teacher} 강사님의 ${subject} 내역을 삭제하시겠습니까?`)) return; try { await deleteDoc(doc(db, "assignments", docId)); } catch (error) {} }
 
     function renderList(dataList) {
+        currentlyShownData = dataList; 
         const listBody = document.getElementById('admin-list-body');
         const summaryCon = document.getElementById('summary-container');
         let html = "";
@@ -234,7 +283,6 @@
         });
         allAssignments = rawData.map((item, index) => ({ ...item, virtualNo: rawData.length - index }));
         
-        // ✅ 셀렉트박스 옵션 설정 (초기 1회 혹은 데이터 구조 변경 시만 실행)
         if (isInitialLoad) {
             const tSet = new Set(); const cSet = new Set(); const rSet = new Set(); const roleSet = new Set();
             allAssignments.forEach(i => { 
@@ -249,8 +297,6 @@
             document.getElementById('roleFilter').innerHTML = `<option value="all">전체 역할</option>` + Array.from(roleSet).sort().map(role => `<option value="${role}">${role}</option>`).join('');
             isInitialLoad = false;
         }
-
-        // ✅ 데이터가 업데이트되면 '선택된 필터 상태'를 기반으로 리스트를 다시 필터링함 (필터 유지 핵심)
         filterAssignments(); 
     });
 
@@ -263,7 +309,6 @@
         const servicePaid = document.getElementById('servicePaidFilter').value;
         const start = document.getElementById('startDate').value;
         const end = document.getElementById('endDate').value;
-
         const filtered = allAssignments.filter(item => {
             const data = item.data;
             if (t !== "all" && data.teacherName !== t) return false;
@@ -274,10 +319,7 @@
             if (s === "pending" && data.status === '확인완료') return false;
             if (servicePaid === "paid" && !data.isPaidService) return false;
             if (servicePaid === "unpaid" && data.isPaidService) return false;
-            if (start && end) {
-                const dates = (data.date || "").split(', ');
-                if (!dates.some(d => d >= start && d <= end)) return false;
-            }
+            if (start && end) { const dates = (data.date || "").split(', '); if (!dates.some(dt => dt >= start && dt <= end)) return false; }
             return true;
         });
         renderList(filtered);
