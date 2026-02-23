@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>에듀메이커 - 강사 전용</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; }
         .header { background-color: #0056b3; color: white; padding: 20px; text-align: center; }
@@ -15,7 +16,11 @@
         .date-group { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; width: 290px; }
         .date-input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13.5px; font-family: inherit; width: 100%; }
         .search-select { padding: 9px; border: 1px solid #ddd; border-radius: 6px; font-size: 13.5px; flex: 0 0 auto; width: 125px; background-color: white; }
+        
+        /* 버튼 스타일 */
         .btn-reset { background-color: #6c757d; color: white; border: none; padding: 9px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; flex: 0 0 auto; }
+        .btn-excel { background-color: #28a745; color: white; border: none; padding: 9px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13.5px; flex: 0 0 auto; display: flex; align-items: center; gap: 5px; }
+
         .status-legend { display: flex; gap: 15px; padding: 5px 15px 15px 5px; flex-wrap: wrap; justify-content: flex-start; }
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #666; font-weight: 500; }
         .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -68,7 +73,7 @@
         .st-ok { background: #d4edda; color: #155724; }
         .list-body { display: none; padding: 0 15px 15px 15px; border-top: 1px solid #eee; }
         .no-data-msg { text-align: center; padding: 60px 20px; color: #888; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 15px; }
-        @media (max-width: 600px) { .search-bar { flex-direction: column; align-items: stretch; gap: 10px; } .date-group { width: 100%; } .search-input, .search-select, .btn-reset { width: 100%; box-sizing: border-box; } }
+        @media (max-width: 600px) { .search-bar { flex-direction: column; align-items: stretch; gap: 10px; } .date-group { width: 100%; } .search-input, .search-select, .btn-reset, .btn-excel { width: 100%; box-sizing: border-box; } }
     </style>
 </head>
 <body>
@@ -84,6 +89,7 @@
             <select id="payTeacherFilter" class="search-select"><option value="all">💰 강사료: 전체</option><option value="completed">지급 완료</option><option value="waiting">지급 대기</option><option value="client_paid">의뢰처 지급</option></select>
             <select id="payServiceFilter" class="search-select"><option value="all">🏷️ 이용료: 전체</option><option value="completed">이용료 입금</option><option value="waiting">이용료 대기</option><option value="no_fee">이용료 없음</option></select>
             <button class="btn-reset" onclick="resetSearch()">초기화</button>
+            <button class="btn-excel" onclick="downloadExcel()">📊 엑셀</button>
         </div>
         <div class="status-legend">
             <div class="legend-item"><span class="dot red"></span> 배정확인 대기</div>
@@ -102,6 +108,7 @@
         const firebaseConfig = { apiKey: "AIzaSyDKA0GjAlOF826TZl49y67H4oz8nMW_Jbw", authDomain: "edumaker-teacher-d97ba.firebaseapp.com", projectId: "edumaker-teacher-d97ba", storageBucket: "edumaker-teacher-d97ba.firebasestorage.app", messagingSenderId: "532708143359", appId: "1:532708143359:web:89b9933da4c868127ddcca", measurementId: "G-JJ1TF77VBJ" };
         const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
         let allAssignmentsData = [];
+        let filteredAssignmentsData = []; // 엑셀 다운로드를 위해 필터링된 데이터 저장
 
         function getDayOfWeek(dateStr) {
             const week = ['일', '월', '화', '수', '목', '금', '토'];
@@ -131,8 +138,8 @@
             const end = document.getElementById('endDate').value;
             const payT = document.getElementById('payTeacherFilter').value;
             const payS = document.getElementById('payServiceFilter').value;
-            if (!keyword && !start && !end && payT === 'all' && payS === 'all') { renderAssignments(allAssignmentsData); return; }
-            const filteredData = allAssignmentsData.filter(data => {
+            
+            filteredAssignmentsData = allAssignmentsData.filter(data => {
                 const clientMatch = !keyword || (data.client && data.client.toLowerCase().includes(keyword));
                 let dateMatch = true; if (start && end) { dateMatch = (data.date || "").split(', ').some(d => d >= start && d <= end); }
                 const commRate = Number(data.commissionRate || 0);
@@ -146,8 +153,47 @@
                 if (payS === 'no_fee' && commRate > 0) paySMatch = false;
                 return clientMatch && dateMatch && payTMatch && paySMatch;
             });
-            renderAssignments(filteredData);
+            renderAssignments(filteredAssignmentsData);
         }
+
+        // ✅ 엑셀 다운로드 함수 추가
+        window.downloadExcel = function() {
+            if (filteredAssignmentsData.length === 0) {
+                alert("다운로드할 강의 내역이 없습니다.");
+                return;
+            }
+
+            const excelData = filteredAssignmentsData.map(data => {
+                const classHours = Number(data.classHours || 0);
+                const hourlyRate = Number(data.hourlyRate || 0);
+                const additionalCost = Number(data.additionalCost || 0);
+                const totalGrossPay = (classHours * hourlyRate) + additionalCost;
+                
+                return {
+                    "강의처": data.client,
+                    "강좌명": data.subject,
+                    "교육날짜": data.date,
+                    "교육시간": data.time,
+                    "역할": data.role,
+                    "총 시간": classHours + "시간",
+                    "시급": hourlyRate.toLocaleString() + "원",
+                    "추가비용": additionalCost.toLocaleString() + "원",
+                    "총 강사료": totalGrossPay.toLocaleString() + "원",
+                    "이용료": (data.serviceFee || 0).toLocaleString() + "원",
+                    "배정상태": data.status === '확인완료' ? '확인완료' : '확인대기',
+                    "정산상태": data.isFinished ? '완료' : '대기',
+                    "비고": data.note || ""
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "강의내역");
+            
+            // 파일명에 오늘 날짜 포함
+            const today = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(workbook, `에듀메이커_강의내역_${today}.xlsx`);
+        };
 
         document.getElementById('searchInput').addEventListener('input', filterAndRender);
         document.getElementById('startDate').addEventListener('change', filterAndRender);
