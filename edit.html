@@ -10,7 +10,7 @@
         .edit-box { 
             background: white; padding: 30px; border-radius: 12px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            max-width: 650px; width: 100%; margin: 0 auto; 
+            max-width: 680px; width: 100%; margin: 0 auto; /* ✅ admin과 동일하게 680px로 고정 */
             box-sizing: border-box; 
         }
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
@@ -19,12 +19,13 @@
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
-        .address-row { display: flex; gap: 10px; flex-wrap: wrap; }
-        .addr-search-group { flex: 7; display: flex; gap: 5px; min-width: 200px; }
-        .addr-search-group input { flex: 1; background-color: #fff; }
-        .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
-        #requestClient { flex: 3; min-width: 150px; }
+        /* ✅ 3열 배치를 위한 너비 조정 */
+        .time-narrow-input { flex: 1.2; min-width: 80px; }
+        .fee-input { flex: 2; min-width: 140px; }
+
+        .addr-search-group { flex: 1; display: flex; gap: 5px; }
+        .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
         .role-wrapper { display: flex; gap: 10px; flex-wrap: wrap; }
         #roleSelect { flex: 1; min-width: 120px; }
@@ -121,8 +122,9 @@
     </div>
     
     <div class="row-group">
-        <div class="half-input"><label>총 강의 시간</label><input type="number" id="classHours"></div>
-        <div class="half-input"><label>시간당 강사료</label><input type="text" id="hourlyRate"></div>
+        <div class="time-narrow-input"><label>총 강의 시간</label><input type="number" id="classHours"></div>
+        <div class="fee-input"><label>시급 (지급용)</label><input type="text" id="hourlyRate"></div>
+        <div class="fee-input"><label>원시급 (의뢰용)</label><input type="text" id="originalFee"></div>
     </div>
     
     <div class="row-group">
@@ -205,13 +207,14 @@
                 originalData = docSnap.data(); 
                 document.getElementById('teacherName').value = originalData.teacherName;
                 document.getElementById('teacherEmail').value = originalData.teacherEmail;
-                document.getElementById('phone').value = originalData.phone || ''; // ✅ 전화번호 로드
+                document.getElementById('phone').value = originalData.phone || '';
                 document.getElementById('client').value = originalData.client;
                 document.getElementById('subject').value = originalData.subject;
                 document.getElementById('address').value = originalData.address;
                 document.getElementById('requestClient').value = originalData.requestClient || ''; 
                 document.getElementById('classHours').value = originalData.classHours;
                 document.getElementById('hourlyRate').value = Number(originalData.hourlyRate).toLocaleString();
+                document.getElementById('originalFee').value = Number(originalData.originalFee || 0).toLocaleString(); // ✅ 원시급 로드
                 document.getElementById('additionalCost').value = Number(originalData.additionalCost || 0).toLocaleString();
                 document.getElementById('commissionRate').value = originalData.commissionRate || 0;
                 document.getElementById('note').value = originalData.note || '';
@@ -234,6 +237,7 @@
 
     function handleComma(e) { let v = e.target.value.replace(/[^0-9]/g, ''); e.target.value = v ? Number(v).toLocaleString() : ''; }
     document.getElementById('hourlyRate').addEventListener('input', handleComma);
+    document.getElementById('originalFee').addEventListener('input', handleComma); // ✅ 원시급 콤마 처리
     document.getElementById('additionalCost').addEventListener('input', handleComma);
     document.getElementById('addScheduleBtn').onclick = () => addScheduleRow();
 
@@ -241,6 +245,7 @@
         const btn = document.getElementById('updateBtn');
         const phone = document.getElementById('phone').value.trim();
         const reqClient = document.getElementById('requestClient').value.trim();
+        const origFee = Number(document.getElementById('originalFee').value.replace(/,/g, '')) || 0; // ✅ 원시급 숫자 변환
         
         const rows = document.querySelectorAll('.schedule-row');
         let dList = []; let tList = [];
@@ -255,19 +260,24 @@
         btn.innerText = "저장 중...";
 
         try {
+            const classHours = Number(document.getElementById('classHours').value);
+            const hourlyRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
+            const commRate = Number(document.getElementById('commissionRate').value);
+
             await updateDoc(doc(db, "assignments", docId), {
                 phone: phone, 
                 requestClient: reqClient,
+                originalFee: origFee, // ✅ 원시급 업데이트
                 client: document.getElementById('client').value.trim(),
                 subject: document.getElementById('subject').value.trim(),
                 address: document.getElementById('address').value.trim(),
                 role: document.getElementById('roleSelect').value === 'direct' ? document.getElementById('roleInputDirect').value : document.getElementById('roleSelect').value,
                 date: dList.join(', '), time: tList.join(', '),
-                classHours: Number(document.getElementById('classHours').value),
-                hourlyRate: Number(document.getElementById('hourlyRate').value.replace(/,/g, '')),
+                classHours: classHours,
+                hourlyRate: hourlyRate,
                 additionalCost: Number(document.getElementById('additionalCost').value.replace(/,/g, '')),
-                commissionRate: Number(document.getElementById('commissionRate').value),
-                serviceFee: Math.floor((Number(document.getElementById('classHours').value) * Number(document.getElementById('hourlyRate').value.replace(/,/g, ''))) * (Number(document.getElementById('commissionRate').value) / 100)),
+                commissionRate: commRate,
+                serviceFee: Math.floor((classHours * hourlyRate) * (commRate / 100)),
                 note: document.getElementById('note').value.trim(),
                 isUpdated: true, status: "배정완료"
             });
