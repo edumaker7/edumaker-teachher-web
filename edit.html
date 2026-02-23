@@ -7,23 +7,18 @@
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f5; padding: 20px; margin: 0; }
-        
         .edit-box { 
             background: white; padding: 30px; border-radius: 12px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
             max-width: 650px; width: 100%; margin: 0 auto; 
             box-sizing: border-box; 
         }
-        
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
         .input-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
-        
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
-        
         .address-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .addr-search-group { flex: 7; display: flex; gap: 5px; min-width: 200px; }
         .addr-search-group input { flex: 1; background-color: #fff; }
@@ -43,45 +38,29 @@
         .schedule-row input[type="date"] { 
             flex: 1; min-width: 140px; background: #fff; border: 1px solid #ced4da;
         } 
-
         .time-picker-group { display: flex; align-items: center; gap: 5px; flex: 2; justify-content: flex-end; flex-wrap: wrap; }
-
         .time-set {
             display: flex; align-items: center; gap: 2px;
             background: #fff; border: 1px solid #ced4da; border-radius: 6px;
             padding: 0 5px; height: 45px;
         }
-
         .time-set select {
-            width: auto !important; 
-            border: none; background: transparent;
-            padding: 0 2px; font-size: 14px; text-align: center;
-            height: 100%;
+            width: auto !important; border: none; background: transparent;
+            padding: 0 2px; font-size: 14px; text-align: center; height: 100%;
         }
-        .time-set select:focus { outline: none; }
-
         .ampm-select { font-weight: bold; color: #0056b3; width: 55px !important; }
         .hour-select, .min-select { width: 45px !important; }
-        
         .tilde { font-weight: bold; color: #888; margin: 0 2px; }
-        
         .btn-remove-row { 
             background-color: #ff6b6b; color: white; border: none; 
             border-radius: 6px; width: 40px; height: 45px; 
             cursor: pointer; font-weight: bold; font-size: 20px; 
             display: flex; align-items: center; justify-content: center;
         }
-
         .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
-        
         .btn-group-bottom { display: flex; gap: 10px; margin-top: 20px; }
         .btn-update { flex: 2; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
-        .btn-update:disabled { background-color: #a5c3e6; cursor: not-allowed; }
-        
         .btn-close { flex: 1; padding: 16px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
-        
-        .btn-update:hover:not(:disabled) { background-color: #004494; }
-        .btn-close:hover { background-color: #5a6268; }
 
         @media (max-width: 600px) {
             .schedule-row input[type="date"] { width: 100%; flex: 100%; margin-bottom: 5px; }
@@ -100,6 +79,11 @@
         <div class="half-input"><label>강사 성함</label><input type="text" id="teacherName" readonly style="background:#f1f1f1;"></div>
         <div class="half-input"><label>강사 이메일</label><input type="text" id="teacherEmail" readonly style="background:#f1f1f1;"></div>
     </div>
+
+    <div class="row-group">
+        <div class="half-input"><label>강사 전화번호</label><input type="text" id="phone"></div>
+        <div class="half-input"><label>강의의뢰처</label><input type="text" id="requestClient"></div>
+    </div>
     
     <div class="row-group">
         <div class="half-input"><label>강의처</label><input type="text" id="client"></div>
@@ -107,17 +91,25 @@
     </div>
     
     <div class="input-group">
-        <label>강의 장소 및 의뢰처</label>
+        <label>강의 장소 (주소)</label>
         <div class="address-row">
-            <div class="addr-search-group"><input type="text" id="address" placeholder="주소 직접 입력 또는 검색"><button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button></div>
-            <input type="text" id="requestClient" placeholder="강의의뢰처">
+            <div class="addr-search-group">
+                <input type="text" id="address" placeholder="주소 직접 입력 또는 검색">
+                <button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button>
+            </div>
         </div>
     </div>
     
     <div class="input-group">
         <label>역할</label>
         <div class="role-wrapper">
-            <select id="roleSelect"><option value="">선택하세요</option><option value="주강사">주강사</option><option value="보조강사">보조강사</option><option value="안전요원">안전요원</option><option value="direct">직접 입력 (기타)</option></select>
+            <select id="roleSelect">
+                <option value="">선택하세요</option>
+                <option value="주강사">주강사</option>
+                <option value="보조강사">보조강사</option>
+                <option value="안전요원">안전요원</option>
+                <option value="direct">직접 입력 (기타)</option>
+            </select>
             <input type="text" id="roleInputDirect" placeholder="역할 직접 입력">
         </div>
     </div>
@@ -125,7 +117,7 @@
     <div class="input-group">
         <label>교육 일정</label>
         <div id="scheduleContainer"></div>
-        <button type="button" class="btn-add-row" id="addScheduleBtn">+ 일정 추가하기</button>
+        <button type="button" class="btn-add-row" id="addScheduleBtn"> + 일정 추가하기</button>
     </div>
     
     <div class="row-group">
@@ -150,7 +142,6 @@
     function openDaumPostcode() {
         new daum.Postcode({ oncomplete: function(data) {
             document.getElementById("address").value = data.roadAddress || data.jibunAddress;
-            document.getElementById("requestClient").focus();
         }}).open();
     }
 </script>
@@ -214,6 +205,7 @@
                 originalData = docSnap.data(); 
                 document.getElementById('teacherName').value = originalData.teacherName;
                 document.getElementById('teacherEmail').value = originalData.teacherEmail;
+                document.getElementById('phone').value = originalData.phone || ''; // ✅ 전화번호 로드
                 document.getElementById('client').value = originalData.client;
                 document.getElementById('subject').value = originalData.subject;
                 document.getElementById('address').value = originalData.address;
@@ -224,8 +216,7 @@
                 document.getElementById('commissionRate').value = originalData.commissionRate || 0;
                 document.getElementById('note').value = originalData.note || '';
 
-                const roles = ["주강사", "보조강사", "안전요원"];
-                if (roles.includes(originalData.role)) document.getElementById('roleSelect').value = originalData.role;
+                if (["주강사", "보조강사", "안전요원"].includes(originalData.role)) document.getElementById('roleSelect').value = originalData.role;
                 else if(originalData.role) { document.getElementById('roleSelect').value = "direct"; document.getElementById('roleInputDirect').style.display='block'; document.getElementById('roleInputDirect').value=originalData.role; }
                 const dates = originalData.date ? originalData.date.split(', ') : [];
                 const times = originalData.time ? originalData.time.split(', ') : [];
@@ -247,20 +238,10 @@
     document.getElementById('addScheduleBtn').onclick = () => addScheduleRow();
 
     document.getElementById('updateBtn').onclick = async () => {
-        const updateBtn = document.getElementById('updateBtn');
-        const newClient = document.getElementById('client').value.trim();
-        const newSub = document.getElementById('subject').value.trim();
-        const newAddr = document.getElementById('address').value.trim();
-        const newReqClient = document.getElementById('requestClient').value.trim(); 
-        const newHours = Number(document.getElementById('classHours').value);
-        const newRate = Number(document.getElementById('hourlyRate').value.replace(/,/g, ''));
-        const newAdd = Number(document.getElementById('additionalCost').value.replace(/,/g, ''));
-        const newComm = Number(document.getElementById('commissionRate').value);
-        const newNote = document.getElementById('note').value.trim();
+        const btn = document.getElementById('updateBtn');
+        const phone = document.getElementById('phone').value.trim();
+        const reqClient = document.getElementById('requestClient').value.trim();
         
-        let newRole = document.getElementById('roleSelect').value;
-        if (newRole === 'direct') newRole = document.getElementById('roleInputDirect').value.trim();
-
         const rows = document.querySelectorAll('.schedule-row');
         let dList = []; let tList = [];
         rows.forEach(row => {
@@ -269,45 +250,29 @@
             const te = `${row.querySelector('.ampm-end').value} ${row.querySelector('.hour-end').value}:${row.querySelector('.min-end').value}`;
             if(d) { dList.push(d); tList.push(`${ts} ~ ${te}`); }
         });
-        
-        const newDate = dList.join(', '); const newTime = tList.join(', ');
 
-        const changedCli = newClient !== (originalData.client || "").trim();
-        const changedSub = newSub !== (originalData.subject || "").trim();
-        const changedAddr = newAddr !== (originalData.address || "").trim();
-        const changedReqClient = newReqClient !== (originalData.requestClient || "").trim();
-        const changedRole = newRole !== (originalData.role || "").trim();
-        const changedSch = (newDate !== originalData.date) || (newTime !== originalData.time);
-        const changedH = newHours !== Number(originalData.classHours || 0);
-        const changedR = newRate !== Number(originalData.hourlyRate || 0);
-        const changedA = newAdd !== Number(originalData.additionalCost || 0);
-        const changedC = newComm !== Number(originalData.commissionRate || 0);
-        const changedN = newNote !== (originalData.note || "").trim();
-
-        // 중복 클릭 방지 처리 시작
-        updateBtn.disabled = true;
-        updateBtn.innerText = "수정 내용을 저장 중입니다...";
+        btn.disabled = true;
+        btn.innerText = "저장 중...";
 
         try {
             await updateDoc(doc(db, "assignments", docId), {
-                client: newClient, subject: newSub, address: newAddr, 
-                requestClient: newReqClient, 
-                role: newRole,
-                date: newDate, time: newTime, classHours: newHours, hourlyRate: newRate, additionalCost: newAdd, commissionRate: newComm,
-                serviceFee: Math.floor((newHours * newRate) * (newComm / 100)), note: newNote,
-                status: "배정완료", isUpdated: true, isPaidTeacher: false, isPaidService: false,
-                changed_client: changedCli, changed_subject: changedSub, changed_address: changedAddr, 
-                changed_requestClient: changedReqClient, 
-                changed_role: changedRole, changed_schedule: changedSch, 
-                changed_hours: changedH, changed_rate: changedR, changed_addCost: changedA, 
-                changed_comm: changedC, changed_note: changedN
+                phone: phone, 
+                requestClient: reqClient,
+                client: document.getElementById('client').value.trim(),
+                subject: document.getElementById('subject').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                role: document.getElementById('roleSelect').value === 'direct' ? document.getElementById('roleInputDirect').value : document.getElementById('roleSelect').value,
+                date: dList.join(', '), time: tList.join(', '),
+                classHours: Number(document.getElementById('classHours').value),
+                hourlyRate: Number(document.getElementById('hourlyRate').value.replace(/,/g, '')),
+                additionalCost: Number(document.getElementById('additionalCost').value.replace(/,/g, '')),
+                commissionRate: Number(document.getElementById('commissionRate').value),
+                serviceFee: Math.floor((Number(document.getElementById('classHours').value) * Number(document.getElementById('hourlyRate').value.replace(/,/g, ''))) * (Number(document.getElementById('commissionRate').value) / 100)),
+                note: document.getElementById('note').value.trim(),
+                isUpdated: true, status: "배정완료"
             });
             alert("수정되었습니다."); window.close(); 
-        } catch (e) { 
-            alert("수정 오류: " + e.message); 
-            updateBtn.disabled = false;
-            updateBtn.innerText = "수정 내용 저장하기";
-        }
+        } catch (e) { alert("오류: " + e.message); btn.disabled = false; btn.innerText = "수정 내용 저장하기"; }
     };
 </script>
 </body>
