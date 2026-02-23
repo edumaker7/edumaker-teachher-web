@@ -10,7 +10,7 @@
         .edit-box { 
             background: white; padding: 30px; border-radius: 12px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            max-width: 680px; width: 100%; margin: 0 auto; /* ✅ admin과 동일하게 680px로 고정 */
+            max-width: 680px; width: 100%; margin: 0 auto;
             box-sizing: border-box; 
         }
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
@@ -20,17 +20,11 @@
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
         
-        /* ✅ 3열 배치를 위한 너비 조정 */
-        .time-narrow-input { flex: 1.2; min-width: 80px; }
-        .fee-input { flex: 2; min-width: 140px; }
-
-        .addr-search-group { flex: 1; display: flex; gap: 5px; }
+        .address-half { flex: 1.5; min-width: 300px; }
+        .role-half { flex: 1; min-width: 200px; }
+        .addr-search-group { display: flex; gap: 5px; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        
-        .role-wrapper { display: flex; gap: 10px; flex-wrap: wrap; }
-        #roleSelect { flex: 1; min-width: 120px; }
-        #roleInputDirect { flex: 1; display: none; min-width: 150px; }
-        
+
         .schedule-row { 
             display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; 
             align-items: center; padding: 12px; 
@@ -63,12 +57,9 @@
         .btn-update { flex: 2; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
         .btn-close { flex: 1; padding: 16px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
 
-        @media (max-width: 600px) {
-            .schedule-row input[type="date"] { width: 100%; flex: 100%; margin-bottom: 5px; }
-            .time-picker-group { width: 100%; justify-content: space-between; flex: 100%; }
-            .time-set { flex: 1; justify-content: center; } 
-            .btn-remove-row { width: 100%; margin-top: 5px; height: 35px; }
-        }
+        .time-narrow-input { flex: 1.2; min-width: 80px; }
+        .fee-input { flex: 2; min-width: 140px; }
+        input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -91,19 +82,16 @@
         <div class="half-input"><label>강좌명</label><input type="text" id="subject"></div>
     </div>
     
-    <div class="input-group">
-        <label>강의 장소 (주소)</label>
-        <div class="address-row">
+    <div class="row-group">
+        <div class="address-half">
+            <label>강의 장소 (주소)</label>
             <div class="addr-search-group">
                 <input type="text" id="address" placeholder="주소 직접 입력 또는 검색">
                 <button type="button" class="btn-addr-search" onclick="openDaumPostcode()">🔍</button>
             </div>
         </div>
-    </div>
-    
-    <div class="input-group">
-        <label>역할</label>
-        <div class="role-wrapper">
+        <div class="role-half">
+            <label>역할</label>
             <select id="roleSelect">
                 <option value="">선택하세요</option>
                 <option value="주강사">주강사</option>
@@ -111,7 +99,7 @@
                 <option value="안전요원">안전요원</option>
                 <option value="direct">직접 입력 (기타)</option>
             </select>
-            <input type="text" id="roleInputDirect" placeholder="역할 직접 입력">
+            <input type="text" id="roleInputDirect" placeholder="역할 직접 입력" style="display:none; margin-top:8px;">
         </div>
     </div>
     
@@ -214,7 +202,7 @@
                 document.getElementById('requestClient').value = originalData.requestClient || ''; 
                 document.getElementById('classHours').value = originalData.classHours;
                 document.getElementById('hourlyRate').value = Number(originalData.hourlyRate).toLocaleString();
-                document.getElementById('originalFee').value = Number(originalData.originalFee || 0).toLocaleString(); // ✅ 원시급 로드
+                document.getElementById('originalFee').value = Number(originalData.originalFee || 0).toLocaleString(); 
                 document.getElementById('additionalCost').value = Number(originalData.additionalCost || 0).toLocaleString();
                 document.getElementById('commissionRate').value = originalData.commissionRate || 0;
                 document.getElementById('note').value = originalData.note || '';
@@ -237,15 +225,16 @@
 
     function handleComma(e) { let v = e.target.value.replace(/[^0-9]/g, ''); e.target.value = v ? Number(v).toLocaleString() : ''; }
     document.getElementById('hourlyRate').addEventListener('input', handleComma);
-    document.getElementById('originalFee').addEventListener('input', handleComma); // ✅ 원시급 콤마 처리
+    document.getElementById('originalFee').addEventListener('input', handleComma);
     document.getElementById('additionalCost').addEventListener('input', handleComma);
     document.getElementById('addScheduleBtn').onclick = () => addScheduleRow();
 
     document.getElementById('updateBtn').onclick = async () => {
         const btn = document.getElementById('updateBtn');
+        const teacherName = document.getElementById('teacherName').value; // 알림창용 이름 변수 추출
         const phone = document.getElementById('phone').value.trim();
         const reqClient = document.getElementById('requestClient').value.trim();
-        const origFee = Number(document.getElementById('originalFee').value.replace(/,/g, '')) || 0; // ✅ 원시급 숫자 변환
+        const origFee = Number(document.getElementById('originalFee').value.replace(/,/g, '')) || 0;
         
         const rows = document.querySelectorAll('.schedule-row');
         let dList = []; let tList = [];
@@ -267,7 +256,7 @@
             await updateDoc(doc(db, "assignments", docId), {
                 phone: phone, 
                 requestClient: reqClient,
-                originalFee: origFee, // ✅ 원시급 업데이트
+                originalFee: origFee,
                 client: document.getElementById('client').value.trim(),
                 subject: document.getElementById('subject').value.trim(),
                 address: document.getElementById('address').value.trim(),
@@ -281,7 +270,10 @@
                 note: document.getElementById('note').value.trim(),
                 isUpdated: true, status: "배정완료"
             });
-            alert("수정되었습니다."); window.close(); 
+            
+            alert(teacherName + " 강사님 정보가 수정되었습니다."); 
+            
+            window.close(); 
         } catch (e) { alert("오류: " + e.message); btn.disabled = false; btn.innerText = "수정 내용 저장하기"; }
     };
 </script>

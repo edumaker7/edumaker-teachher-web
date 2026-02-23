@@ -12,7 +12,7 @@
         .admin-box { 
             background: white; padding: 35px; border-radius: 12px; 
             box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
-            max-width: 680px; width: 100%; margin: 0 auto; /* ✅ 전체 너비를 다시 680px로 고정 */
+            max-width: 680px; width: 100%; margin: 0 auto;
             box-sizing: border-box; 
         }
         h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
@@ -23,22 +23,28 @@
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 250px; }
         
-        /* ✅ 3열 배치를 위한 세밀한 너비 조정 */
-        .time-narrow-input { flex: 1.2; min-width: 80px; } /* 총 강의 시간 */
-        .fee-input { flex: 2; min-width: 140px; }         /* 시급 및 원시급 */
-        
-        .addr-search-group { flex: 1; display: flex; gap: 5px; }
+
+        .address-half { flex: 1.5; min-width: 300px; }
+        .role-half { flex: 1; min-width: 200px; }
+
+        .addr-search-group { display: flex; gap: 5px; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        
         .schedule-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; align-items: center; padding: 12px; background-color: #f1f3f5; border-radius: 8px; border: 1px solid #e9ecef;}
         .schedule-row input[type="date"] { flex: 1; min-width: 140px; background: #fff; } 
         .time-picker-group { display: flex; align-items: center; gap: 5px; flex: 2; justify-content: flex-end; flex-wrap: wrap; }
         .time-set { display: flex; align-items: center; gap: 2px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; padding: 0 5px; height: 45px; }
         .time-set select { width: auto !important; border: none; background: transparent; padding: 0 2px; font-size: 14px; text-align: center; height: 100%; }
         .ampm-select { font-weight: bold; color: #0056b3; width: 55px !important; }
+        
         .btn-add-row { background-color: #51cf66; color: white; border: none; border-radius: 8px; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 15px; width: 100%; margin-bottom: 10px; }
         .btn-assign { width: 100%; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; margin-top: 15px; }
+        
         .admin-footer-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-status-link, .btn-list-link { flex: 1; min-width: 150px; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #e9ecef; }
+        
+        .time-narrow-input { flex: 1.2; min-width: 80px; }
+        .fee-input { flex: 2; min-width: 140px; }
         input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
     </style>
 </head>
@@ -80,27 +86,24 @@
         </div>
     </div>
 
-    <div class="input-group">
-        <label>강의 장소 (주소)</label>
-        <div class="address-row">
+    <div class="row-group">
+        <div class="address-half">
+            <label>강의 장소 (주소)</label>
             <div class="addr-search-group">
-                <input type="text" id="address" placeholder="주소 직접 입력 또는 검색">
+                <input type="text" id="address" placeholder="주소 입력 또는 검색">
                 <button type="button" id="btnAddrSearch" class="btn-addr-search">🔍</button>
             </div>
         </div>
-    </div>
-
-    <div class="input-group">
-        <label>역할 <span class="required">*</span></label>
-        <div class="role-wrapper">
+        <div class="role-half">
+            <label>역할 <span class="required">*</span></label>
             <select id="roleSelect">
-                <option value="">역할을 선택하세요</option>
+                <option value="">선택</option>
                 <option value="주강사">주강사</option>
                 <option value="보조강사">보조강사</option>
                 <option value="안전요원">안전요원</option>
-                <option value="direct">직접 입력 (기타)</option>
+                <option value="direct">기타(직접입력)</option>
             </select>
-            <input type="text" id="roleInputDirect" style="display:none; margin-top:10px;" placeholder="역할을 직접 입력하세요">
+            <input type="text" id="roleInputDirect" style="display:none; margin-top:8px;" placeholder="역할 입력">
         </div>
     </div>
 
@@ -235,7 +238,7 @@
             });
 
             await emailjs.send('service_6f7u7om', 'template_05mv50b', { teacherEmail: selectedEmail, teacherName: name, client: client, date: dateList.join(', '), subject: document.getElementById('subject').value || "강의 배정 알림" });
-            alert("배정이 완료되었습니다!"); location.reload();
+            alert(name + " 강사님 배정이 완료되었습니다!"); location.reload();
         } catch (e) { alert("오류 발생: " + e.message); btn.disabled = false; }
     };
 </script>
