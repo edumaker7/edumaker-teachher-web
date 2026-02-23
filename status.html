@@ -31,15 +31,16 @@
         th, td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; font-size: 13px; vertical-align: middle; }
         th { background-color: #fafafa; color: #495057; font-weight: 700; font-size: 12px; text-align: center; }
         
-        .col-no { width: 30px; text-align: center; }
-        .col-date { width: 100px; text-align: center; }
-        .col-user { width: 120px; text-align: center; }
-        .col-info { width: 200px; } 
-        .col-pay { width: 55px; text-align: right; }
-        .col-total { width: 85px; text-align: right; }
+        .col-no { width: 20px; text-align: center; }
+        .col-date { width: 90px; text-align: center; }
+        .col-user { width: 115px; text-align: center; }
+        .col-info { width: 175px; } 
+        .col-pay { width: 80px; text-align: right; }
+        .col-total { width: 80px; text-align: right; }
+        .col-extra { width: 70px; text-align: right; }
         .col-note { width: 150px; }
-        .col-chk { width: 90px; text-align: center; }
-        .col-manage { width: 140px; text-align: center; }
+        .col-chk { width: 70px; text-align: center; }
+        .col-manage { width: 80px; text-align: center; }
 
         .row-class-finished, .row-class-finished td { background-color: #f3e5f5 !important; }
         .row-finished, .row-finished td { background-color: #fffde7 !important; }
@@ -68,6 +69,8 @@
         .summary-bar { margin-top: 20px; background-color: #f8f9fa; border: 2px solid #343a40; border-radius: 12px; padding: 20px 30px; display: flex; justify-content: flex-end; align-items: center; gap: 30px; }
         .purple-text { color: #6741d9; font-weight: 600; }
         .profit-text { color: #003399; font-weight: 800; }
+        /* ✅ 추가비용 색상: 회색 통일 */
+        .add-cost-text { color: #444; font-size: 11px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -93,16 +96,10 @@
             <option value="all">전체</option><option value="confirmed">확인완료</option><option value="pending">확인대기</option>
         </select></div>
         <div class="filter-item"><strong>💰 강사료:</strong><select id="teacherPaidFilter" onchange="filterAssignments()">
-            <option value="all">전체</option>
-            <option value="paid">지급완료</option>
-            <option value="unpaid">미지급</option>
-            <option value="direct">의뢰처 지급</option>
+            <option value="all">전체</option><option value="paid">지급완료</option><option value="unpaid">미지급</option><option value="direct">의뢰처 지급</option>
         </select></div>
         <div class="filter-item"><strong>🏷️ 이용료:</strong><select id="servicePaidFilter" onchange="filterAssignments()">
-            <option value="all">전체</option>
-            <option value="paid">확인완료</option>
-            <option value="unpaid">미확인</option>
-            <option value="none">이용료 없음</option>
+            <option value="all">전체</option><option value="paid">확인완료</option><option value="unpaid">미확인</option><option value="none">이용료 없음</option>
         </select></div>
         <div class="filter-item"><strong>🚩 완료:</strong><select id="finishedFilter" onchange="filterAssignments()">
             <option value="all">전체</option><option value="finished">최종완료</option><option value="ongoing">진행중</option>
@@ -118,8 +115,19 @@
 
     <div class="table-responsive">
         <table id="actual-data-table">
-            <thead><tr><th class="col-no">No</th><th class="col-date">교육일자/시간</th><th class="col-user">이름/전화번호/이메일</th><th class="col-info">강의처(의뢰처) / 강좌명 / 역할</th><th class="col-pay">시간/시급/원시급</th><th class="col-total">서비스/합계/원강사료</th><th class="col-note">비고</th><th class="col-chk">정산 처리</th><th class="col-manage">관리</th></tr></thead>
-            <tbody id="admin-list-body"><tr><td colspan="9" style="text-align:center; padding:40px;">데이터를 불러오는 중...</td></tr></tbody>
+            <thead><tr>
+                <th class="col-no">No</th>
+                <th class="col-date">교육일자/시간</th>
+                <th class="col-user">이름/전화번호/이메일</th>
+                <th class="col-info">강의처(의뢰처) / 강좌명 / 역할</th>
+                <th class="col-pay">시간/시급/합계</th>
+                <th class="col-total">원시간/원시급/원강사료</th>
+                <th class="col-extra">추가비용/이용료</th>
+                <th class="col-note">비고</th>
+                <th class="col-chk">정산 처리</th>
+                <th class="col-manage">관리</th>
+            </tr></thead>
+            <tbody id="admin-list-body"><tr><td colspan="10" style="text-align:center; padding:40px;">데이터를 불러오는 중...</td></tr></tbody>
         </table>
     </div>
     <div id="summary-container"></div>
@@ -158,18 +166,42 @@
     function renderList(dataList) {
         currentlyShownData = dataList; const listBody = document.getElementById('admin-list-body'); const summaryCon = document.getElementById('summary-container');
         let html = ""; let sumS = 0; let sumG = 0; let sumO = 0; let totalProfit = 0;
+
         dataList.forEach((item) => {
-            const d = item.data; const hrs = Number(d.classHours || 0); const rate = Number(d.hourlyRate || 0); const orig = Number(d.originalFee || 0); const add = Number(d.additionalCost || 0);
-            const totalPay = (hrs * rate) + add; const totalOrig = (hrs * orig); const fee = Number(d.serviceFee || 0);
+            const d = item.data; 
+            const hrs = Number(d.classHours || 0); 
+            const aHrs = d.adminHours !== undefined ? Number(d.adminHours) : 0; 
+            const rate = Number(d.hourlyRate || 0); 
+            const orig = Number(d.originalFee || 0); 
+            const add = Number(d.additionalCost || 0);
+            const fee = Number(d.serviceFee || 0);
+
+            const totalPay = (hrs * rate) + add; 
+            const totalOrig = (aHrs * orig); 
+            
             sumS += fee; sumG += totalPay; sumO += totalOrig;
             if (orig > 0) totalProfit += (totalOrig - (hrs * rate));
+
             let schHtml = ""; (d.date || "").split(', ').forEach((dt, i) => { schHtml += `<div style="margin-bottom:3px;"><b>${dt}${getDayOfWeek(dt)}</b><br><span style="color:#0056b3; font-size:11px;">${(d.time||"").split(', ')[i]||''}</span></div>`; });
             const req = (d.requestClient || "").trim();
             const lecCheckHtml = (req === "에듀메이커") ? `<label><input type="checkbox" ${d.isPaidTeacher ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidTeacher', this.checked)"> 강사료완료</label>` : `<span style="color:#aaa; font-size:10px;">(의뢰처 직접 지급)</span>`;
             const serCheckHtml = (fee > 0) ? `<label><input type="checkbox" ${d.isPaidService ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isPaidService', this.checked)"> 이용료확인</label>` : `<span style="color:#aaa; font-size:10px;">(이용료 없음)</span>`;
-            html += `<tr class="${d.isFinished ? 'row-finished' : (d.isClassFinished ? 'row-class-finished' : '')}"><td class="col-no">${item.virtualNo}</td><td class="col-date">${schHtml}</td><td class="col-user"><b>${d.teacherName}</b><br><span style="font-size:11.5px; color:#555;">${d.phone || '-'}</span><br><span style="font-size:11px; color:#888;">${d.teacherEmail}</span></td><td class="col-info"><b>${d.client}</b> <span class="purple-text">(${d.requestClient || '-'})</span><br><span style="font-size:12.5px; color:#555;">${d.subject}</span><br><span style="font-size:11.5px; color:#0056b3; font-weight:600;">역할: ${d.role || '강사'}</span></td><td class="col-pay">${hrs}h<br><span style="font-size:11.5px; color:#666;">${rate.toLocaleString()}</span><br><span class="purple-text" style="font-size:11.5px;">${orig.toLocaleString()}</span></td><td class="col-total"><span style="color:#0056b3;">${fee.toLocaleString()}</span><br><b>${totalPay.toLocaleString()}</b><br><span class="purple-text">${totalOrig.toLocaleString()}</span></td><td class="col-note"><div class="note-container">${d.note ? d.note.trim() : '-'}</div></td><td class="col-chk"><div class="chk-group">${lecCheckHtml}${serCheckHtml}<label><input type="checkbox" ${d.isClassFinished ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isClassFinished', this.checked)"> 수업종료</label></div></td><td class="col-manage"><div class="btn-group"><button class="${d.status === '확인완료' ? 'btn-confirm-ok' : 'btn-confirm-wait'}">${d.status === '확인완료' ? '확인됨' : '대기중'}</button><button class="${d.isFinished ? 'btn-restore' : 'btn-finish'}" onclick="toggleFinishStatus('${item.id}', ${d.isFinished})">${d.isFinished ? '복구' : '완료'}</button><button class="btn-edit" onclick="window.open('edit.html?id=${item.id}')">수정</button><button class="btn-delete" onclick="deleteAssignment('${item.id}', '${d.subject}', '${d.teacherName}')">삭제</button></div></td></tr>`;
+
+            html += `
+                <tr class="${d.isFinished ? 'row-finished' : (d.isClassFinished ? 'row-class-finished' : '')}">
+                    <td class="col-no">${item.virtualNo}</td>
+                    <td class="col-date">${schHtml}</td>
+                    <td class="col-user"><b>${d.teacherName}</b><br><span style="font-size:11.5px; color:#555;">${d.phone || '-'}</span><br><span style="font-size:11px; color:#888;">${d.teacherEmail}</span></td>
+                    <td class="col-info"><b>${d.client}</b> <span class="purple-text">(${d.requestClient || '-'})</span><br><span style="font-size:12.5px; color:#555;">${d.subject}</span><br><span style="font-size:11.5px; color:#0056b3; font-weight:600;">역할: ${d.role || '강사'}</span></td>
+                    <td class="col-pay">${hrs}h<br>${rate.toLocaleString()}<br><b>${totalPay.toLocaleString()}</b></td>
+                    <td class="col-total">${aHrs}h<br>${orig.toLocaleString()}<br><span class="purple-text">${totalOrig.toLocaleString()}</span></td>
+                    <td class="col-extra"><span class="add-cost-text">${add.toLocaleString()}</span><br><span style="color:#0056b3;">${fee.toLocaleString()}</span></td>
+                    <td class="col-note"><div class="note-container">${d.note ? d.note.trim() : '-'}</div></td>
+                    <td class="col-chk"><div class="chk-group">${lecCheckHtml}${serCheckHtml}<label><input type="checkbox" ${d.isClassFinished ? 'checked' : ''} onchange="updatePayStatus('${item.id}', 'isClassFinished', this.checked)"> 수업종료</label></div></td>
+                    <td class="col-manage"><div class="btn-group"><button class="${d.status === '확인완료' ? 'btn-confirm-ok' : 'btn-confirm-wait'}">${d.status === '확인완료' ? '확인됨' : '대기중'}</button><button class="${d.isFinished ? 'btn-restore' : 'btn-finish'}" onclick="toggleFinishStatus('${item.id}', ${d.isFinished})">${d.isFinished ? '복구' : '완료'}</button><button class="btn-edit" onclick="window.open('edit.html?id=${item.id}')">수정</button><button class="btn-delete" onclick="deleteAssignment('${item.id}', '${d.subject}', '${d.teacherName}')">삭제</button></div></td>
+                </tr>`;
         });
-        listBody.innerHTML = html || '<tr><td colspan="9" style="text-align:center; padding:40px;">내역이 없습니다.</td></tr>';
+        listBody.innerHTML = html || '<tr><td colspan="10" style="text-align:center; padding:40px;">내역이 없습니다.</td></tr>';
         summaryCon.innerHTML = `<div class="summary-bar"><span>총 <b>${currentlyShownData.length}</b>건</span> | <span>이용료: <b>${sumS.toLocaleString()}</b>원</span> | <span class="purple-text">원강사료 합계: <b>${sumO.toLocaleString()}</b>원</span> | <span style="font-weight:bold; color:#d93025;">합계: <b>${sumG.toLocaleString()}</b>원</span> | <span class="profit-text">수익: <b>${totalProfit.toLocaleString()}</b>원</span></div>`;
     }
 
@@ -179,37 +211,39 @@
         const s = document.getElementById('confirmFilter').value; const teacherPaid = document.getElementById('teacherPaidFilter').value;
         const servicePaid = document.getElementById('servicePaidFilter').value; const finished = document.getElementById('finishedFilter').value;
         const start = document.getElementById('startDate').value; const end = document.getElementById('endDate').value;
-
-        const filtered = allAssignments.filter(item => {
-            const d = item.data;
-            if (t !== "all" && d.teacherName !== t) return false;
-            if (c !== "all" && d.client !== c) return false;
-            if (r !== "all" && d.requestClient !== r) return false;
-            if (role !== "all" && d.role !== role) return false;
-            if (s === "confirmed" && d.status !== '확인완료') return false;
-            if (s === "pending" && d.status === '확인완료') return false;
-            
-            if (teacherPaid === "paid" && !d.isPaidTeacher) return false;
-            if (teacherPaid === "unpaid" && (d.isPaidTeacher || (d.requestClient || "").trim() !== "에듀메이커")) return false;
-            if (teacherPaid === "direct" && (d.requestClient || "").trim() === "에듀메이커") return false;
-
-            if (servicePaid === "paid" && !d.isPaidService) return false;
-            if (servicePaid === "unpaid" && (d.isPaidService || Number(d.serviceFee || 0) <= 0)) return false;
-            if (servicePaid === "none" && Number(d.serviceFee || 0) > 0) return false;
-
-            if (finished === "finished" && !d.isFinished) return false;
-            if (finished === "ongoing" && d.isFinished) return false;
-            if (start && end) { const dates = (d.date || "").split(', '); if (!dates.some(dt => dt >= start && dt <= end)) return false; }
-            return true;
-        });
+        const filtered = allAssignments.filter(item => { const d = item.data; if (t !== "all" && d.teacherName !== t) return false; if (c !== "all" && d.client !== c) return false; if (r !== "all" && d.requestClient !== r) return false; if (role !== "all" && d.role !== role) return false; if (s === "confirmed" && d.status !== '확인완료') return false; if (s === "pending" && d.status === '확인완료') return false; if (teacherPaid === "paid" && !d.isPaidTeacher) return false; if (teacherPaid === "unpaid" && (d.isPaidTeacher || (d.requestClient || "").trim() !== "에듀메이커")) return false; if (teacherPaid === "direct" && (d.requestClient || "").trim() === "에듀메이커") return false; if (servicePaid === "paid" && !d.isPaidService) return false; if (servicePaid === "unpaid" && (d.isPaidService || Number(d.serviceFee || 0) <= 0)) return false; if (servicePaid === "none" && Number(d.serviceFee || 0) > 0) return false; if (finished === "finished" && !d.isFinished) return false; if (finished === "ongoing" && d.isFinished) return false; if (start && end) { const dates = (d.date || "").split(', '); if (!dates.some(dt => dt >= start && dt <= end)) return false; } return true; });
         renderList(filtered);
     }
 
     window.downloadExcel = function() {
         if (currentlyShownData.length === 0) return;
         const excelData = currentlyShownData.map(item => {
-            const d = item.data; const hrs = Number(d.classHours || 0);
-            return { "번호": item.virtualNo, "교육일자": d.date, "강사명": d.teacherName, "의뢰처": d.requestClient || "-", "강의처": d.client, "강좌명": d.subject, "역할": d.role, "시간": hrs, "시급": d.hourlyRate, "원시급": d.originalFee || 0, "합계": (hrs * Number(d.hourlyRate)) + Number(d.additionalCost || 0), "서비스 이용료": d.serviceFee || 0, "비고": d.note || "", "완료여부": d.isFinished ? "완료" : "진행중" };
+            const d = item.data; 
+            const hrs = Number(d.classHours || 0);
+            const aHrs = d.adminHours !== undefined ? Number(d.adminHours) : 0;
+            const hourlyRate = Number(d.hourlyRate || 0);
+            const addCost = Number(d.additionalCost || 0);
+            const originalFee = Number(d.originalFee || 0);
+            
+            return { 
+                "번호": item.virtualNo, 
+                "교육일자": d.date, 
+                "강사명": d.teacherName, 
+                "의뢰처": d.requestClient || "-", 
+                "강의처": d.client, 
+                "강좌명": d.subject, 
+                "역할": d.role, 
+                "시간": hrs, 
+                "추가비용": addCost, 
+                "시급": hourlyRate, 
+                "합계": (hrs * hourlyRate) + addCost,
+                "원강의시간": aHrs,
+                "원시급": originalFee,
+                "원강사료": aHrs * originalFee,
+                "서비스 이용료": d.serviceFee || 0,
+                "비고": d.note || "", 
+                "완료여부": d.isFinished ? "완료" : "진행중" 
+            };
         });
         const worksheet = XLSX.utils.json_to_sheet(excelData); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "전체배정현황");
         XLSX.writeFile(workbook, `에듀메이커_전체현황_${new Date().toISOString().slice(0,10)}.xlsx`);

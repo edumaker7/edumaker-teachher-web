@@ -20,6 +20,11 @@
         .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
         .half-input { flex: 1; min-width: 200px; }
         
+        /* ✅ admin과 동일한 4열 너비 조정 */
+        .time-col { flex: 0.7; min-width: 100px; }
+        .fee-col { flex: 1.3; min-width: 160px; }
+        .admin-bg { background-color: #fffde7 !important; border-color: #ffe082 !important; }
+
         .address-half { flex: 1.5; min-width: 300px; }
         .role-half { flex: 1; min-width: 200px; }
         .addr-search-group { display: flex; gap: 5px; }
@@ -57,8 +62,6 @@
         .btn-update { flex: 2; padding: 16px; background-color: #0056b3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
         .btn-close { flex: 1; padding: 16px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 17px; }
 
-        .time-narrow-input { flex: 1.2; min-width: 80px; }
-        .fee-input { flex: 2; min-width: 140px; }
         input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
     </style>
 </head>
@@ -110,9 +113,22 @@
     </div>
     
     <div class="row-group">
-        <div class="time-narrow-input"><label>총 강의 시간</label><input type="number" id="classHours"></div>
-        <div class="fee-input"><label>시급 (지급용)</label><input type="text" id="hourlyRate"></div>
-        <div class="fee-input"><label>원시급 (의뢰용)</label><input type="text" id="originalFee"></div>
+        <div class="time-col">
+            <label>강의시간</label>
+            <input type="number" id="classHours" placeholder="시간">
+        </div>
+        <div class="fee-col">
+            <label>강사시급</label>
+            <input type="text" id="hourlyRate" placeholder="지급액">
+        </div>
+        <div class="time-col">
+            <label>원강의시간</label>
+            <input type="number" id="adminHours" class="admin-bg" placeholder="관리용">
+        </div>
+        <div class="fee-col">
+            <label>원시급</label>
+            <input type="text" id="originalFee" class="admin-bg" placeholder="의뢰처용">
+        </div>
     </div>
     
     <div class="row-group">
@@ -201,6 +217,7 @@
                 document.getElementById('address').value = originalData.address;
                 document.getElementById('requestClient').value = originalData.requestClient || ''; 
                 document.getElementById('classHours').value = originalData.classHours;
+                document.getElementById('adminHours').value = originalData.adminHours || 0; // ✅ 원강의시간 로드
                 document.getElementById('hourlyRate').value = Number(originalData.hourlyRate).toLocaleString();
                 document.getElementById('originalFee').value = Number(originalData.originalFee || 0).toLocaleString(); 
                 document.getElementById('additionalCost').value = Number(originalData.additionalCost || 0).toLocaleString();
@@ -231,10 +248,11 @@
 
     document.getElementById('updateBtn').onclick = async () => {
         const btn = document.getElementById('updateBtn');
-        const teacherName = document.getElementById('teacherName').value; // 알림창용 이름 변수 추출
+        const teacherName = document.getElementById('teacherName').value;
         const phone = document.getElementById('phone').value.trim();
         const reqClient = document.getElementById('requestClient').value.trim();
         const origFee = Number(document.getElementById('originalFee').value.replace(/,/g, '')) || 0;
+        const adminHours = Number(document.getElementById('adminHours').value) || 0; // ✅ 원강의시간 변수 추출
         
         const rows = document.querySelectorAll('.schedule-row');
         let dList = []; let tList = [];
@@ -257,6 +275,7 @@
                 phone: phone, 
                 requestClient: reqClient,
                 originalFee: origFee,
+                adminHours: adminHours, // ✅ 원강의시간 업데이트
                 client: document.getElementById('client').value.trim(),
                 subject: document.getElementById('subject').value.trim(),
                 address: document.getElementById('address').value.trim(),
@@ -266,13 +285,12 @@
                 hourlyRate: hourlyRate,
                 additionalCost: Number(document.getElementById('additionalCost').value.replace(/,/g, '')),
                 commissionRate: commRate,
-                serviceFee: Math.floor((classHours * hourlyRate) * (commRate / 100)),
+                serviceFee: Math.floor((classHours * hourlyRate) * (commissionRate / 100)),
                 note: document.getElementById('note').value.trim(),
                 isUpdated: true, status: "배정완료"
             });
             
             alert(teacherName + " 강사님 정보가 수정되었습니다."); 
-            
             window.close(); 
         } catch (e) { alert("오류: " + e.message); btn.disabled = false; btn.innerText = "수정 내용 저장하기"; }
     };

@@ -19,14 +19,17 @@
         .input-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; font-size: 14px; }
         .required { color: #d93025; margin-left: 3px; font-weight: bold; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .row-group { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
-        .half-input { flex: 1; min-width: 250px; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        .row-group { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+        .half-input { flex: 1; min-width: 200px; }
         
+        /* ✅ 4열 너비 커스텀 조정 */
+        .time-col { flex: 0.7; min-width: 100px; } /* 시간 칸: 좁게 */
+        .fee-col { flex: 1.3; min-width: 160px; }  /* 시급 칸: 넓게 */
+        .admin-bg { background-color: #fffde7 !important; border-color: #ffe082 !important; }
 
         .address-half { flex: 1.5; min-width: 300px; }
         .role-half { flex: 1; min-width: 200px; }
-
         .addr-search-group { display: flex; gap: 5px; }
         .btn-addr-search { width: 50px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
@@ -43,8 +46,6 @@
         .admin-footer-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-status-link, .btn-list-link { flex: 1; min-width: 150px; padding: 14px; background-color: #f1f3f5; color: #495057; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #e9ecef; }
         
-        .time-narrow-input { flex: 1.2; min-width: 80px; }
-        .fee-input { flex: 2; min-width: 140px; }
         input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
     </style>
 </head>
@@ -114,17 +115,21 @@
     </div>
 
     <div class="row-group">
-        <div class="time-narrow-input">
-            <label>총 강의 시간</label>
+        <div class="time-col">
+            <label>강의시간</label>
             <input type="number" id="classHours" placeholder="시간">
         </div>
-        <div class="fee-input">
-            <label>시급 (강사지급용)</label>
-            <input type="text" id="hourlyRate" placeholder="예: 50,000">
+        <div class="fee-col">
+            <label>강사시급</label>
+            <input type="text" id="hourlyRate" placeholder="지급액">
         </div>
-        <div class="fee-input">
-            <label>원시급 (의뢰처용)</label>
-            <input type="text" id="originalFee" placeholder="예: 70,000">
+        <div class="time-col">
+            <label>원강의시간</label>
+            <input type="number" id="adminHours" class="admin-bg" placeholder="관리용">
+        </div>
+        <div class="fee-col">
+            <label>원시급</label>
+            <input type="text" id="originalFee" class="admin-bg" placeholder="의뢰처용">
         </div>
     </div>
 
@@ -215,6 +220,7 @@
 
         try {
             const classHours = Number(document.getElementById('classHours').value) || 0;
+            const adminHours = Number(document.getElementById('adminHours').value) || 0;
             const hourlyRate = Number(document.getElementById('hourlyRate').value.replace(/,/g,'')) || 0;
             const originalFee = Number(document.getElementById('originalFee').value.replace(/,/g,'')) || 0;
             const additionalCost = Number(document.getElementById('additionalCost').value.replace(/,/g,'')) || 0;
@@ -231,7 +237,9 @@
                 address: document.getElementById('address').value || "-",
                 subject: document.getElementById('subject').value || "-",
                 role: role, date: dateList.join(', '), time: timeList.join(', '),
-                classHours: classHours, hourlyRate: hourlyRate, originalFee: originalFee,
+                classHours: classHours, 
+                adminHours: adminHours,
+                hourlyRate: hourlyRate, originalFee: originalFee,
                 additionalCost: additionalCost, commissionRate: commissionRate, 
                 serviceFee: Math.floor((classHours * hourlyRate) * (commissionRate / 100)),
                 note: noteValue, status: "배정완료", isFinished: false, isPaidTeacher: false, isPaidService: false, createdAt: new Date()
